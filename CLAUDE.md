@@ -41,6 +41,12 @@ Feature work is driven by specs in `docs/specs/`. If a task has no spec and is b
 - One public type per file; file name = type name.
 - Namespaces: `Isekai.<Area>` (e.g. `Isekai.Gameplay.Combat`).
 
+## Keeping docs current (exception to "no docs" rule)
+- If a task changes a design decision, update the matching `docs/design/` file in the same task and tell me what changed.
+- When a feature is done, set its spec's Status to Done and note anything that differs from the spec.
+- Keep `docs/progress.md` current: one line per finished feature, plus an "In progress" section with next steps.
+- Never edit CLAUDE.md or `.claude/rules/` yourself. Propose the exact change and wait for approval.
+
 ## Never
 - Never hand-edit `.meta` files, `ProjectSettings/`, or `Packages/manifest.json`. Use the `unity-package-management` skill and ask first.
 - Never add a package, asset, or third-party library without asking.
