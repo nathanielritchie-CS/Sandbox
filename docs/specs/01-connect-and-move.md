@@ -1,6 +1,6 @@
 # 01 — Connect and Move
 
-**Status:** Draft
+**Status:** In progress (host verified; client test pending)
 **Design ref:** `docs/design/overview.md` (Co-op)
 
 ## Goal
@@ -39,10 +39,10 @@ A host starts a game and a second player joins. Each player spawns a character, 
 - [ ] EditMode tests pass for the move-direction logic.
 - [ ] Compiles with zero errors, no new warnings.
 
-## Open questions
-- Camera: write a small follow/orbit camera, or add Cinemachine (a new package; needs your approval)?
-- Host / Join buttons: UI Toolkit or uGUI? (I'd pick per the `ui` skill when implementing; they're throwaway.)
-- Sprint now, or walk only?
+## Decisions
+- Camera: Cinemachine (package approved).
+- Host / Join buttons: framework chosen via the `ui` skill.
+- Sprint included.
 
 ## Differences from spec
 Filled in when Status is set to Done.

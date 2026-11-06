@@ -3,7 +3,8 @@
     "rootNamespace": "Isekai.UI",
     "references": [
         "Isekai.Core",
-        "Isekai.Gameplay"
+        "Isekai.Gameplay",
+        "UnityEngine.UI"
     ],
     "autoReferenced": true
 }

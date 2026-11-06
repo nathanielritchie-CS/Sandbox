@@ -1,4 +1,9 @@
 ﻿<Solution>
+  <Project Path="Isekai.Net.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Isekai.Core.csproj" />
+  <Project Path="Isekai.Gameplay.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Isekai.Tests.EditMode.csproj" />
+  <Project Path="Isekai.UI.csproj" />
 </Solution>

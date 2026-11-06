@@ -3,7 +3,8 @@
     "rootNamespace": "Isekai.Gameplay",
     "references": [
         "Isekai.Core",
-        "Isekai.Data"
+        "Isekai.Data",
+        "Unity.Cinemachine"
     ],
     "autoReferenced": true
 }
