@@ -33,6 +33,8 @@ Feature work is driven by specs in `docs/specs/`. If a task has no spec and is b
 - `Assets/_Project/Data/`: ScriptableObject assets
 - `Assets/_Project/{Prefabs,Scenes,Art,Audio,UI}`
 - `Assets/_Project/Tests/{EditMode,PlayMode}`
+- `Assets/_Project/Art/Placeholder/`: third-party placeholder art (CC0), to be replaced
+- `tools/mp-harness/`: multiplayer test harness (not part of the game)
 - `docs/design/`: game design (what the game is)
 - `docs/specs/`: feature specs (what to build now). Template: `docs/specs/_TEMPLATE.md`
 
@@ -49,7 +51,7 @@ Feature work is driven by specs in `docs/specs/`. If a task has no spec and is b
 
 ## Never
 - Never hand-edit `.meta` files, `ProjectSettings/`, or `Packages/manifest.json`. Use the `unity-package-management` skill and ask first.
-- Never add a package, asset, or third-party library without asking.
+- Never add a package, asset, or third-party library without asking — except free/open-licensed placeholder assets, TextMeshPro/UI elements and free open-source packages (pre-approved 2026-11-05; keep the license file next to the asset).
 - Never modify a scene or prefab without saying which one first.
 - Never delete files without asking.
 - Never put gameplay authority on the client (see networking rules).
@@ -57,6 +59,7 @@ Feature work is driven by specs in `docs/specs/`. If a task has no spec and is b
 ## Tools: Unity MCP
 - The Unity Editor is reachable through the `unity-editor-mcp` server. Run `unity-cli-status` before any Editor action. If it's not connected, stop and tell me.
 - Use the Editor (via MCP / `unity-cli` skill) to verify: compile, read console errors, run tests, enter play mode.
+- Host + client checks: the Multiplayer Play Mode MCP tools don't work with MPPM 2.0.2. Use `tools/mp-harness` (Editor host + headless dev-build clients); usage in `docs/progress.md` → Known issues.
 
 ## Skills: load the matching skill BEFORE acting
 | Task | Skill |
