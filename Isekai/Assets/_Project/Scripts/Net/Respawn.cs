@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace Isekai.Net
 {
-    // Server: a dead player comes back at their spawn point with full health after a delay.
-    [RequireComponent(typeof(NetworkHealth), typeof(PlayerMovement))]
-    public class PlayerRespawn : NetworkBehaviour
+    // Server: anything with health comes back to full health after a delay; players also return to their spawn point.
+    // (Enemies are moved home by EnemyAI when they revive.)
+    [RequireComponent(typeof(NetworkHealth))]
+    public class Respawn : NetworkBehaviour
     {
         [SerializeField] private float _respawnSeconds = 5f;
 
         private NetworkHealth _health;
-        private PlayerMovement _movement;
+        private PlayerMovement _movement; // optional
         private float _respawnAt = -1f;
 
         private void Awake()
@@ -33,7 +34,7 @@ namespace Isekai.Net
             }
             else if (Time.time >= _respawnAt)
             {
-                _movement.ServerRespawn();
+                if (_movement != null) _movement.ServerRespawn();
                 _health.ServerRestore();
             }
         }

@@ -6,21 +6,25 @@
 - 2026-11-05: Multiplayer test harness `tools/mp-harness/` (see Gotchas). Lets an automated session verify host + client without Multiplayer Play Mode.
 
 ## Built and verified, waiting for your Multiplayer Play Mode sign-off
-All five were verified with the Editor as host and headless Windows development builds as clients, not Multiplayer Play Mode. Run the MPPM check when you can (Window > Multiplayer Play Mode > Player 2 → Play in Bootstrap → Host in main, Join in Player 2); if it passes, set each spec's Status to Done. Each spec's "Differences from spec" lists what differs.
+All seven were verified with the Editor as host and headless Windows development builds as clients, not Multiplayer Play Mode. Run the MPPM check when you can (Window > Multiplayer Play Mode > Player 2 → Play in Bootstrap → Host in main, Join in Player 2); if it passes, set each spec's Status to Done. Each spec's "Differences from spec" lists what differs.
 - **Spec 01: connect and move** (`docs/specs/01-connect-and-move.md`). Both players spawn and move, see each other, disconnect/rejoin works, a client can't move or attack as another player. The check found a real hole (any client could teleport another player through `SnapBackRpc`); fixed with `InvokePermission = Server`. Also fixed: the host's player fell through the world while TestLevel was loading.
 - **Spec 02: basic combat** (`docs/specs/02-basic-combat.md`). Left click attacks; the server checks cooldown, range and arc; training dummy (100 HP) tints, hides at 0, returns after 3 s. Seen identically on host and client. Fixed an obsolete-attribute build warning (`RequireOwnership`).
 - **Spec 03: stats and status window** (`docs/specs/03-stats-and-status-window.md`). Level, XP and seven placeholder stats (Attack, Defense, Dexterity, Stealth, Luck, Mana, Stamina); the dummy gives 50 XP to whoever kills it; Attack adds to damage; C opens the status window. XP is a server-write NetworkVariable. XP is not saved between sessions.
 - **Spec 04: party forming** (`docs/specs/04-party-forming.md`). E invites the nearest player within 5 m (or accepts a pending invite), L leaves. The roster is a server-write NetworkList; max 4; the leader is the first member; a party below 2 dissolves; disconnects count as leaving; invites expire after 15 s. **The pact/initiation is still undecided in the design doc: invite + accept is only a stand-in and is the piece to replace.** Tested with host + 2 clients including forged accept, forged server-only prompt, expiry and disconnects.
 - **Spec 05: online sessions** (`docs/specs/05-online-sessions.md`). The Bootstrap menu has an Online panel beside the direct one: Host Online shows a join code (also in the HUD, top-left, for everyone), Join Online takes it. Private 4-player session, anonymous sign-in, brokered connectivity; the session starts Netcode itself, then the level loads like the direct flow. Wrong/empty codes show a message. Stopping the host deletes the session. Verified through the real cloud services. Not tested: another network, two online clients on one PC, host crash.
 
+- **Spec 06: enemies and player health** (`docs/specs/06-enemies-and-player-health.md`). Player HP 100 with a HUD label, Defense reduces damage taken, death → 5 s → respawn at spawn, one NavMesh enemy (40 HP, chases the nearest living player within 8 m, 8 damage every 1.2 s, 30 XP, returns home after 10 s), no friendly fire. Verified with host + 1 client, including dead players being unable to move or attack.
+
+- **Spec 07: animated placeholder characters** (`docs/specs/07-animated-placeholder-characters.md`). Players are Quaternius RPG characters (CC0), one of six by client id (host = Warrior, next = Rogue ...); the enemy is a red Demon. Idle/walk/run/attack/hit/death, synced to every peer (attacks via a server event, the rest from replicated movement and health).
+
+- **Spec 08: forest environment and lighting** (`docs/specs/08-forest-environment-and-lighting.md`). TestLevel is a 120 m forest clearing (Quaternius Stylized Nature MegaKit, CC0) with warm soft-shadowed sun, gradient ambient, palette sky, fog and one global Volume. Placeholder art bible + `Isekai.Core.Palette`. Trees and rocks block players and the enemy.
+
 ## In progress
-- **Spec 06: enemies and player health** (`docs/specs/06-enemies-and-player-health.md`). Built: player HP 100 with a HUD label, Defense reduces damage taken (`Damage.Mitigate`, tested), death → 5 s → respawn at spawn, one NavMesh enemy (40 HP, chases the nearest living player within 8 m, 8 damage every 1.2 s, 30 XP, back home after 10 s), no friendly fire. TestLevel has a baked NavMesh (`Scenes/TestLevel/NavMesh-Ground.asset`).
-  - Verified (host + 1 client): enemy stays put with nobody in range, goes for the nearer player, hits for 5 at level 1 (8 − Defense 3), HUD shows HP and "You died. Respawning...", players can't hurt each other, the enemy's death gave 30 XP and hid it on both sides.
-  - Still to verify: a dead player can't move or attack (the test missed the 5 s window), exact respawn position, the enemy returning home after 10 s, a client's kill getting the XP, a run with two clients. Then fill in the spec's Done-when and Differences.
+- Spec 09: HUD in TextMeshPro (health bar, status and party panels, join code), then the visual scorecard from the `craft-game-floors` skill.
 
 ## Next steps
-1. Finish verifying spec 06 (above).
-2. Your Multiplayer Play Mode sign-off for specs 01–05 (and 06 once verified); then set them Done.
+1. Spec 09 (above).
+2. Your Multiplayer Play Mode sign-off for specs 01–07; then set them Done.
 3. Design decisions that block deeper work: the party pact, the final stat list and how stats grow, combat depth (stamina, parry, weak spots), what death costs.
 
 ## Current state (for a new session)

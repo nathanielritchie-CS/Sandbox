@@ -75,3 +75,16 @@ string Enemy() {
 }
 // Text of the HUD label bound to the channel asset with this name (e.g. "PlayerHealthChannel").
 string Hud(string channelName) { foreach (var l in Scene("Isekai.UI.TextChannelLabel")) if (((UnityEngine.Object)Prop(l, "_channel")).name == channelName) return (string)Prop(Prop(l, "_text"), "text"); return "-"; }
+// "<model>:<state>" for a character's CharacterAnimator (state: Loco(<clip>), Attack, Hit, Death, or hidden).
+string Anim(Component character) {
+    var ca = character.GetComponent(T("Isekai.Net.CharacterAnimator"));
+    if (ca == null) return "no CharacterAnimator";
+    var a = (Animator)Prop(ca, "_animator");
+    if (a == null) return "no animator yet";
+    if (!a.isActiveAndEnabled) return a.name + ":hidden";
+    var i = a.GetCurrentAnimatorStateInfo(0);
+    var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : i.IsName("Attack") ? "Attack" : i.IsName("Hit") ? "Hit" : i.IsName("Death") ? "Death" : "?";
+    return a.name + ":" + s;
+}
+Component Player(ulong owner) { foreach (var o in Scene("Isekai.Net.PlayerMovement")) if ((ulong)Prop(o, "OwnerClientId") == owner) return (Component)o; return null; }
+Component EnemyComp() => (Component)Scene("Isekai.Net.EnemyAI").FirstOrDefault();

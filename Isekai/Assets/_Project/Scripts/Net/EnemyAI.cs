@@ -20,6 +20,7 @@ namespace Isekai.Net
         private readonly List<PlayerCandidate> _candidates = new();
         private NavMeshAgent _agent;
         private NetworkHealth _health;
+        private CharacterAnimator _presentation; // optional
         private Vector3 _home;
         private float _nextAttackTime;
         private float _nextRepathTime;
@@ -29,6 +30,7 @@ namespace Isekai.Net
         {
             _agent = GetComponent<NavMeshAgent>();
             _health = GetComponent<NetworkHealth>();
+            _presentation = GetComponent<CharacterAnimator>();
             // Only the server steers; clients follow the server-authoritative NetworkTransform.
             _agent.enabled = false;
         }
@@ -78,6 +80,7 @@ namespace Isekai.Net
             if (offset.magnitude > _definition.AttackRange || Time.time < _nextAttackTime) return;
 
             _nextAttackTime = Time.time + _definition.AttackCooldown;
+            if (_presentation != null) _presentation.ServerPlayAttack();
             var defense = target.TryGetComponent(out PlayerStats stats) ? stats.Get(StatType.Defense) : 0;
             target.GetComponent<NetworkHealth>().ServerTakeDamage(Damage.Mitigate(_definition.AttackDamage, defense));
         }

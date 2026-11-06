@@ -17,12 +17,14 @@ namespace Isekai.Net
         private readonly HashSet<NetworkHealth> _hit = new();
         private PlayerStats _stats;
         private NetworkHealth _health;
+        private CharacterAnimator _presentation; // optional
         private float _nextAttackTime;
 
         private void Awake()
         {
             _stats = GetComponent<PlayerStats>();
             _health = GetComponent<NetworkHealth>();
+            _presentation = GetComponent<CharacterAnimator>();
         }
 
         public override void OnNetworkSpawn()
@@ -40,6 +42,7 @@ namespace Isekai.Net
         {
             if (!_health.IsAlive || Time.time < _nextAttackTime) return;
             _nextAttackTime = Time.time + _definition.Cooldown;
+            if (_presentation != null) _presentation.ServerPlayAttack();
 
             var damage = _definition.Damage + _stats.Get(StatType.Attack);
             _hit.Clear();

@@ -1,4 +1,5 @@
 using System.Collections;
+using Isekai.Core;
 using UnityEngine;
 
 namespace Isekai.Net
@@ -22,7 +23,7 @@ namespace Isekai.Net
             var alive = current > 0;
             _renderer.enabled = alive;
             _collider.enabled = alive;
-            _renderer.material.color = Color.Lerp(Color.red, _healthyColor, (float)current / max);
+            _renderer.material.color = Color.Lerp(Palette.Danger, _healthyColor, (float)current / max);
 
             if (!alive && _health.IsServer) StartCoroutine(Respawn());
         }
