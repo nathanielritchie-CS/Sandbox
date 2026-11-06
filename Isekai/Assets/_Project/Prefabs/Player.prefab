@@ -15,6 +15,11 @@ GameObject:
   - component: {fileID: 5413106355620778626}
   - component: {fileID: 4404679575712357250}
   - component: {fileID: 130948680481243163}
+  - component: {fileID: 588357460806276590}
+  - component: {fileID: 4262892212429202913}
+  - component: {fileID: 4335610101702227384}
+  - component: {fileID: 6435527306697621371}
+  - component: {fileID: 6258822454752462718}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -215,3 +220,75 @@ MonoBehaviour:
   _gravity: -20
   _speedCheckInterval: 0.5
   _speedTolerance: 1.5
+--- !u!114 &588357460806276590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316953439322784323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9801ea11eaf2acc428e63aa3dc35df51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Isekai.Net::Isekai.Net.PlayerAttack
+  ShowTopMostFoldoutHeaderGroup: 1
+  _attack: {fileID: 1903506563957944628, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _definition: {fileID: 11400000, guid: ef019ac2355187841bf8e43be4f49676, type: 2}
+--- !u!114 &4262892212429202913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316953439322784323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4348ea88ed1e8e448bf0a6a14c707526, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Isekai.Net::Isekai.Net.PlayerStats
+  ShowTopMostFoldoutHeaderGroup: 1
+  _definition: {fileID: 11400000, guid: 3e68d4dce9d9dec459bbbe9e0d0453f5, type: 2}
+  _statusChannel: {fileID: 11400000, guid: a4905040f3e3ee643a3943e5fe443943, type: 2}
+--- !u!114 &4335610101702227384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316953439322784323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 176d4669d381095488591fd07fe42c41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Isekai.Net::Isekai.Net.NetworkHealth
+  ShowTopMostFoldoutHeaderGroup: 1
+  _maxHealth: 100
+--- !u!114 &6435527306697621371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316953439322784323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23b20f033cdf00e418095e502e151eef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Isekai.Net::Isekai.Net.PlayerRespawn
+  ShowTopMostFoldoutHeaderGroup: 1
+  _respawnSeconds: 5
+--- !u!114 &6258822454752462718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316953439322784323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e78f6b4f32d0e234a965d3c6b85938ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Isekai.Net::Isekai.Net.PlayerHealthReporter
+  ShowTopMostFoldoutHeaderGroup: 1
+  _channel: {fileID: 11400000, guid: bfa775bd5b2e73f459ddf84db62cc7c2, type: 2}

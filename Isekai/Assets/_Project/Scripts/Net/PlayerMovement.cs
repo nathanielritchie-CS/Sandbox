@@ -1,12 +1,14 @@
+using System.Collections.Generic;
 using Isekai.Core.Events;
 using Isekai.Gameplay.Movement;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace Isekai.Net
 {
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(CharacterController), typeof(NetworkHealth))]
     public class PlayerMovement : NetworkBehaviour
     {
         [SerializeField] private InputActionReference _move;
@@ -21,20 +23,28 @@ namespace Isekai.Net
         [SerializeField] private float _speedTolerance = 1.5f;
 
         private CharacterController _controller;
+        private NetworkHealth _health;
         private float _verticalVelocity;
         private Vector3 _lastValidPosition;
+        private Vector3 _spawnPoint;
         private float _checkTimer;
 
-        private void Awake() => _controller = GetComponent<CharacterController>();
+        private void Awake()
+        {
+            _controller = GetComponent<CharacterController>();
+            _health = GetComponent<NetworkHealth>();
+        }
 
         public override void OnNetworkSpawn()
         {
             // shortcut: spawn points are a line by client id; replace with real spawn points later.
-            var spawn = new Vector3(OwnerClientId * 2f, 1f, 0f);
-            _lastValidPosition = spawn;
+            _spawnPoint = new Vector3(OwnerClientId * 2f, 1f, 0f);
+            _lastValidPosition = _spawnPoint;
 
             if (!IsOwner) return;
-            Teleport(spawn);
+            Teleport(_spawnPoint);
+            // The host's player spawns before the game scene (and its ground) has loaded, so it falls; put it back once loaded.
+            NetworkManager.SceneManager.OnLoadEventCompleted += ReturnToSpawn;
             _move.action.Enable();
             _sprint.action.Enable();
             _localPlayerChannel.Raise(transform);
@@ -42,12 +52,16 @@ namespace Isekai.Net
 
         public override void OnNetworkDespawn()
         {
-            if (IsOwner) _localPlayerChannel.Raise(null);
+            if (!IsOwner) return;
+            if (NetworkManager.SceneManager != null) NetworkManager.SceneManager.OnLoadEventCompleted -= ReturnToSpawn;
+            _localPlayerChannel.Raise(null);
         }
+
+        private void ReturnToSpawn(string sceneName, LoadSceneMode mode, List<ulong> completed, List<ulong> timedOut) => Teleport(_spawnPoint);
 
         private void Update()
         {
-            if (IsOwner) Move();
+            if (IsOwner && _health.IsAlive) Move();
             if (IsServer) CheckSpeed();
         }
 
@@ -75,13 +89,22 @@ namespace Isekai.Net
             _checkTimer = 0f;
         }
 
-        [Rpc(SendTo.Owner)]
+        // Server: put the owner back at their spawn point (after death).
+        public void ServerRespawn()
+        {
+            _lastValidPosition = _spawnPoint;
+            SnapBackRpc(_spawnPoint);
+        }
+
+        // Server-only: otherwise any client could teleport another player by calling this on their object.
+        [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
         private void SnapBackRpc(Vector3 position) => Teleport(position);
 
         private void Teleport(Vector3 position)
         {
             _controller.enabled = false;
             transform.position = position;
+            _verticalVelocity = 0f;
             _controller.enabled = true;
         }
     }

@@ -3,9 +3,13 @@
     "rootNamespace": "Isekai.Net",
     "references": [
         "Isekai.Core",
+        "Isekai.Data",
         "Isekai.Gameplay",
         "Unity.Netcode.Runtime",
         "Unity.Networking.Transport",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.Multiplayer",
         "Unity.InputSystem"
     ],
     "autoReferenced": true

@@ -9,3 +9,7 @@
 *.csproj
 *.sln
 *.user
+
+# Unity Pipeline: transient assets generated during player builds
+/Assets/Settings/Pipeline/Resources/RuntimePipelineConfig.asset*
+/Assets/Settings/Pipeline/Resources/RuntimePipelineBuildInfo.asset*

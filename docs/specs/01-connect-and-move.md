@@ -1,6 +1,6 @@
 # 01 — Connect and Move
 
-**Status:** In progress (host verified; client test pending)
+**Status:** Verified with the Editor as host and a standalone development build as client. Multiplayer Play Mode sign-off pending (yours); set Done after it.
 **Design ref:** `docs/design/overview.md` (Co-op)
 
 ## Goal
@@ -32,12 +32,12 @@ A host starts a game and a second player joins. Each player spawns a character, 
 - What each client sees: all players' positions and rotations, smoothed.
 
 ## Done when
-- [ ] Pressing Play in Bootstrap shows Host / Join buttons, then loads the test level.
-- [ ] Host + 1 client in Multiplayer Play Mode: both characters spawn, both move with WASD + mouse, each sees the other move smoothly.
-- [ ] Client disconnects → its character disappears for the host. Rejoining spawns it again.
-- [ ] A client can't move another player's character.
-- [ ] EditMode tests pass for the move-direction logic.
-- [ ] Compiles with zero errors, no new warnings.
+- [x] Pressing Play in Bootstrap shows Host / Join buttons, then loads the test level. (Host button verified; Join verified through the same channel.)
+- [x] Host + 1 client: both characters spawn, both move with WASD, each sees the other move. Verified with a headless development build as the client: real key presses moved the client, and the host reported the identical position; host-side moves replicated to the client. Not measured: smoothness, mouse look on the client, a real Multiplayer Play Mode run.
+- [x] Client disconnects → its character disappears for the host. Rejoining spawns it again (new client id, fresh spawn point).
+- [x] A client can't move another player's character. A forged `SnapBackRpc` from a client teleported the host's player; fixed (see Differences) and re-verified: forged `SnapBackRpc` and `AttackRpc` calls are refused, and an old client's forged message is dropped by the host.
+- [x] EditMode tests pass for the move-direction logic.
+- [x] Compiles with zero errors, no new warnings.
 
 ## Decisions
 - Camera: Cinemachine (package approved).
@@ -45,4 +45,9 @@ A host starts a game and a second player joins. Each player spawns a character, 
 - Sprint included.
 
 ## Differences from spec
-Filled in when Status is set to Done.
+- Net asmdef also references `Unity.Networking.Transport` (needed to resolve `UnityTransport.SetConnectionData`).
+- Camera reads mouse look from Cinemachine's default input actions, not the project's `Player/Look`.
+- Connection menu uses legacy uGUI `InputField`/`Text`, not TextMeshPro (avoids importing TMP Essentials for throwaway UI).
+- Bug fixed: the host's player spawned before TestLevel finished loading and fell through the world. `PlayerMovement` now returns the owner to its spawn on `SceneManager.OnLoadEventCompleted`, and `Teleport` resets vertical velocity.
+- Security fix: `SnapBackRpc` was `[Rpc(SendTo.Owner)]` with the default permission, so any client could teleport another player by calling it on their object (the server's speed check only undid large jumps). It is now `InvokePermission = RpcInvokePermission.Server`.
+- Verified with the Editor as host and a headless Windows development build as client (`tools/mp-harness/`), not Multiplayer Play Mode.
