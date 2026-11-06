@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Isekai.Data.Enemies;
 using Isekai.Data.Stats;
@@ -14,6 +15,7 @@ namespace Isekai.Net
     public class EnemyAI : NetworkBehaviour
     {
         private const float RepathSeconds = 0.2f;
+        private const float BiteReachSlack = 1.3f; // how far past its attack range a bite still connects
 
         [SerializeField] private EnemyDefinition _definition;
 
@@ -81,6 +83,18 @@ namespace Isekai.Net
 
             _nextAttackTime = Time.time + _definition.AttackCooldown;
             if (_presentation != null) _presentation.ServerPlayAttack();
+            StartCoroutine(ServerBite(target));
+        }
+
+        // The target is picked when the attack starts; the damage lands when the bite connects, if the target is still in reach
+        // (stepping or rolling away dodges it).
+        private IEnumerator ServerBite(NetworkObject target)
+        {
+            yield return new WaitForSeconds(_definition.AttackImpactDelay);
+            if (!_health.IsAlive || target == null) yield break;
+            var offset = target.transform.position - transform.position;
+            offset.y = 0f;
+            if (offset.magnitude > _definition.AttackRange * BiteReachSlack) yield break;
             var defense = target.TryGetComponent(out PlayerStats stats) ? stats.Get(StatType.Defense) : 0;
             target.GetComponent<NetworkHealth>().ServerTakeDamage(Damage.Mitigate(_definition.AttackDamage, defense));
         }

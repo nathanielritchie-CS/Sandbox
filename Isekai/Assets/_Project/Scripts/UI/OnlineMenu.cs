@@ -7,7 +7,7 @@ namespace Isekai.UI
     public class OnlineMenu : MonoBehaviour
     {
         [SerializeField] private SessionRequestChannel _requests;
-        [SerializeField] private InputField _code;
+        [SerializeField] private TMPro.TMP_InputField _code;
         [SerializeField] private Button _hostButton;
         [SerializeField] private Button _joinButton;
 

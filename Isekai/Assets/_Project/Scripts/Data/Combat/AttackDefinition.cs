@@ -9,10 +9,15 @@ namespace Isekai.Data.Combat
         [SerializeField] private float _range = 2f;
         [SerializeField] private float _arcDegrees = 90f;
         [SerializeField] private float _cooldown = 0.5f;
+        [Tooltip("Seconds from the swing starting to the weapon connecting; damage lands then.")]
+        [SerializeField] private float _impactDelay = 0.3f;
+        [SerializeField] private float _staminaCost;
 
         public int Damage => _damage;
         public float Range => _range;
         public float ArcDegrees => _arcDegrees;
         public float Cooldown => _cooldown;
+        public float ImpactDelay => _impactDelay;
+        public float StaminaCost => _staminaCost;
     }
 }

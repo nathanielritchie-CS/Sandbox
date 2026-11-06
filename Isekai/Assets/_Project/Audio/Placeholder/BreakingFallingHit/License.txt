@@ -1,0 +1,9 @@
+75 CC0 breaking / falling / hit sfx by rubberduck
+https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx
+
+License:
+CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files used here (unchanged): bfh1_hit_03.ogg, bfh1_hit_08.ogg, bfh1_hit_13.ogg, bfh1_wood_breaking_03.ogg, bfh1_falling_03.ogg
+Placeholder audio, to be replaced.

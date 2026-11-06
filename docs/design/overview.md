@@ -23,12 +23,16 @@ Ways to make money:
 - rare materials and artifacts found in various places
 - quests from the guild and from citizens in populated areas
 
+## Classes
+- Magic Swordsman, Archer, Assassin, Tank. More classes may come later.
+- A secret class, the Predator, can only use abilities it steals from monsters. For now it is available only to the developer.
+
 ## Combat
 - Real-time. It should feel intuitive and almost addicting: satisfying but difficult.
 - Genuine skill checks mixed in, such as parrying, weak spots and stealth.
 - Each character class starts with a set of extremely basic default combat abilities.
 - Players develop new abilities or combat mechanics through combat or by acquiring them as they progress.
-- A stamina bar that influences combat is being considered.
+- A stamina bar limits sprinting, dodge rolls and heavy attacks, and refills after a short pause.
 
 ## Progression
 - Killing monsters gives experience, and experience raises the player's level.
@@ -36,6 +40,10 @@ Ways to make money:
   - spell books or skill books, recovered from monsters with luck, or bought
   - a skill tree within the player window, which advances with experience points
 - Candidate stats: attack, defense, stealth, luck, dexterity, mana, stamina. These may vary by character type.
+- Each level gives stat points that the player allocates in the status window.
+
+## Items
+- The inventory is a slot list (about 20 slots). Items stack; there is no weight limit. It is shown in the status window.
 
 ## Co-op
 - Up to 4 players, who can form one party.
@@ -73,10 +81,8 @@ Mostly light, with some moments of darkness. Kept modest, given this is not a AA
 - The deadly opening scenario, and what kills the player.
 - What thrusts the player from the cosmic space into the new world.
 - Whether the class and single-item choice in the cosmic space stays (may change).
-- The list of character classes.
 - The final stat list, and how stats differ by class.
-- How stats grow: points from experience that the player allocates, growth from the stats used most in combat and other activities, or both.
-- Combat mechanics in depth, and whether there is a stamina bar.
+- Combat mechanics in depth (parrying, weak spots, stealth).
 - Parties of AI native adventurers for solo players.
 - Larger sessions with multiple parties.
 - Whether procedural generation is feasible for the world, and whether mountains are included.

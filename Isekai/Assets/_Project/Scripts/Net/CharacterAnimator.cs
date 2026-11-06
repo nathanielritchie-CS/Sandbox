@@ -1,3 +1,5 @@
+using System.Collections;
+using Isekai.Core;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,6 +13,9 @@ namespace Isekai.Net
         private static readonly int AttackId = Animator.StringToHash("Attack");
         private static readonly int HitId = Animator.StringToHash("Hit");
         private static readonly int DeadId = Animator.StringToHash("Dead");
+        private static readonly int RollId = Animator.StringToHash("Roll");
+        private static readonly int ComboId = Animator.StringToHash("Combo");
+        private static readonly int HeavyId = Animator.StringToHash("Heavy");
         private const float TeleportSpeed = 15f; // faster than anything can move: a teleport (respawn), not a run
 
         // One per look: players get one by client id, anything else uses the first.
@@ -18,6 +23,11 @@ namespace Isekai.Net
         [SerializeField] private float _speedDampSeconds = 0.1f;
         [SerializeField] private float _hideAfterDeathSeconds;  // 0 = stay visible (players)
         [SerializeField] private Collider _disableWhenDead;     // optional
+        [SerializeField] private AudioSource _audio;
+        [SerializeField] private AudioClip[] _attackClips;
+        [SerializeField] private float _attackVolume = 0.5f;    // under the hit sound, which is the payoff
+        [SerializeField] private AudioClip[] _rollClips;
+        [SerializeField] private float _hitStopSeconds = 0.06f;
 
         private NetworkHealth _health;
         private Animator _animator;
@@ -57,16 +67,63 @@ namespace Isekai.Net
             _animator.SetBool(DeadId, dead);
         }
 
-        // Server: show this character's attack on every peer.
-        public void ServerPlayAttack()
+        // Server: show this character's attack on every peer. comboStep 1..n picks a player's combo animation; 0 = the only attack.
+        public void ServerPlayAttack(int comboStep = 0)
         {
-            if (IsServer) AttackRpc();
+            if (IsServer) AttackRpc(comboStep);
         }
 
         [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
-        private void AttackRpc()
+        private void AttackRpc(int comboStep)
         {
-            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(AttackId);
+            if (_animator != null && _animator.isActiveAndEnabled)
+            {
+                if (comboStep > 0) _animator.SetInteger(ComboId, comboStep);
+                _animator.SetTrigger(AttackId);
+            }
+            Sfx.PlayRandom(_audio, _attackClips, _attackVolume);
+        }
+
+        public void ServerPlayHeavyAttack()
+        {
+            if (IsServer) HeavyAttackRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
+        private void HeavyAttackRpc()
+        {
+            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(HeavyId);
+            Sfx.PlayRandom(_audio, _attackClips, _attackVolume);
+        }
+
+        // Owner: freeze the character's animation for a moment when its hit lands.
+        public void PlayHitStop()
+        {
+            if (_animator != null && _animator.isActiveAndEnabled) StartCoroutine(HitStop());
+        }
+
+        private IEnumerator HitStop()
+        {
+            _animator.speed = 0f;
+            yield return new WaitForSecondsRealtime(_hitStopSeconds);
+            _animator.speed = 1f;
+        }
+
+        // Owner: show its own roll at once; the server shows it to everyone else.
+        public void PlayRollLocal() => PlayRoll();
+
+        public void ServerPlayRoll()
+        {
+            if (IsServer) RollRpc();
+        }
+
+        [Rpc(SendTo.NotOwner, InvokePermission = RpcInvokePermission.Server)]
+        private void RollRpc() => PlayRoll();
+
+        private void PlayRoll()
+        {
+            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(RollId);
+            Sfx.PlayRandom(_audio, _rollClips, _attackVolume);
         }
 
         private void OnHealthChanged(int current, int max)

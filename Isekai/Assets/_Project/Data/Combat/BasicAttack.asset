@@ -16,3 +16,4 @@ MonoBehaviour:
   _range: 2
   _arcDegrees: 90
   _cooldown: 0.5
+  _impactDelay: 0.36

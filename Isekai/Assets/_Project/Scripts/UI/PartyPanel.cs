@@ -7,7 +7,7 @@ namespace Isekai.UI
     public class PartyPanel : MonoBehaviour
     {
         [SerializeField] private PartyEventChannel _party;
-        [SerializeField] private UnityEngine.UI.Text _text;
+        [SerializeField] private TMPro.TMP_Text _text;
 
         private void OnEnable()
         {
@@ -22,7 +22,6 @@ namespace Isekai.UI
             var sb = new StringBuilder();
             if (status != null && status.Members.Length > 0)
             {
-                sb.Append("Party\n");
                 for (var i = 0; i < status.Members.Length; i++)
                 {
                     sb.Append(status.Members[i]);

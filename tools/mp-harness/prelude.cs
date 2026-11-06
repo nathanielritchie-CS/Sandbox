@@ -43,8 +43,8 @@ string Status() {
     if ((bool)Prop(nm, "IsServer")) sb.Append(" clients=" + ((System.Collections.ICollection)Prop(nm, "ConnectedClientsIds")).Count);
     foreach (var o in Scene("Isekai.Net.PlayerMovement")) {
         var go = ((Component)o).gameObject; var ps = go.GetComponent(T("Isekai.Net.PlayerStats"));
-        var hp = go.GetComponent(T("Isekai.Net.NetworkHealth"));
-        sb.Append(" | P" + Prop(o, "OwnerClientId") + ((bool)Prop(o, "IsOwner") ? "*" : "") + " " + go.transform.position.ToString("F1") + " L" + Prop(ps, "Level") + " xp" + Prop(Prop(ps, "_xp"), "Value") + (hp != null ? " hp" + Prop(hp, "Current") : ""));
+        var hp = go.GetComponent(T("Isekai.Net.NetworkHealth")); var st = go.GetComponent(T("Isekai.Net.PlayerStamina"));
+        sb.Append(" | P" + Prop(o, "OwnerClientId") + ((bool)Prop(o, "IsOwner") ? "*" : "") + " " + go.transform.position.ToString("F1") + " L" + Prop(ps, "Level") + " xp" + Prop(Prop(ps, "_xp"), "Value") + (hp != null ? " hp" + Prop(hp, "Current") : "") + (st != null ? " st" + Prop(st, "Current") : ""));
     }
     foreach (var o in Scene("Isekai.Net.NetworkHealth")) if (((Component)o).name == "TrainingDummy") sb.Append(" | dummy " + Prop(o, "Current") + "/" + Prop(o, "Max") + (((Component)o).GetComponent<Renderer>().enabled ? "" : " hidden"));
     return sb.ToString();
@@ -71,9 +71,12 @@ string Enemy() {
     var ai = Scene("Isekai.Net.EnemyAI").FirstOrDefault();
     if (ai == null) return "no enemy";
     var go = ((Component)ai).gameObject; var h = go.GetComponent(T("Isekai.Net.NetworkHealth"));
-    return "enemy " + go.transform.position.ToString("F1") + " hp" + Prop(h, "Current") + "/" + Prop(h, "Max") + (go.GetComponent<Renderer>().enabled ? "" : " hidden");
+    return "enemy " + go.transform.position.ToString("F1") + " hp" + Prop(h, "Current") + "/" + Prop(h, "Max") + " " + Anim(go.transform);
 }
-// Text of the HUD label bound to the channel asset with this name (e.g. "PlayerHealthChannel").
+// HUD health bar: "<label> fill=<0..1>", or "hidden" while there is no local player.
+string Health() { var h = Scene("Isekai.UI.HealthBar").FirstOrDefault(b => (UnityEngine.Object)Prop(b, "_label") != null); if (h == null) return "no health bar"; if (!((GameObject)Prop(h, "_panel")).activeSelf) return "hidden"; return (string)Prop(Prop(h, "_label"), "text") + " fill=" + ((RectTransform)Prop(h, "_fill")).anchorMax.x.ToString("F2"); }
+string StaminaHud() { var s = Scene("Isekai.UI.HealthBar").FirstOrDefault(b => (UnityEngine.Object)Prop(b, "_label") == null); if (s == null) return "no stamina bar"; if (!((GameObject)Prop(s, "_panel")).activeSelf) return "hidden"; return "stamina fill=" + ((RectTransform)Prop(s, "_fill")).anchorMax.x.ToString("F2"); }
+// Text of the HUD label bound to the channel asset with this name (e.g. "SessionStatusChannel").
 string Hud(string channelName) { foreach (var l in Scene("Isekai.UI.TextChannelLabel")) if (((UnityEngine.Object)Prop(l, "_channel")).name == channelName) return (string)Prop(Prop(l, "_text"), "text"); return "-"; }
 // "<model>:<state>" for a character's CharacterAnimator (state: Loco(<clip>), Attack, Hit, Death, or hidden).
 string Anim(Component character) {
@@ -83,7 +86,7 @@ string Anim(Component character) {
     if (a == null) return "no animator yet";
     if (!a.isActiveAndEnabled) return a.name + ":hidden";
     var i = a.GetCurrentAnimatorStateInfo(0);
-    var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : i.IsName("Attack") ? "Attack" : i.IsName("Hit") ? "Hit" : i.IsName("Death") ? "Death" : "?";
+    var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : i.IsName("Attack") ? "Attack" : i.IsName("Roll") ? "Roll" : a.GetNextAnimatorStateInfo(0).IsName("Roll") ? "->Roll" : i.IsName("Hit") ? "Hit" : i.IsName("Death") ? "Death" : "?";
     return a.name + ":" + s;
 }
 Component Player(ulong owner) { foreach (var o in Scene("Isekai.Net.PlayerMovement")) if ((ulong)Prop(o, "OwnerClientId") == owner) return (Component)o; return null; }

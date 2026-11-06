@@ -10,6 +10,7 @@ namespace Isekai.Net
         [SerializeField] private int _maxHealth = 100;
 
         private readonly NetworkVariable<int> _current = new();
+        private float _invulnerableUntil;
 
         // (current, max), raised on every peer.
         public event Action<int, int> Changed;
@@ -27,13 +28,16 @@ namespace Isekai.Net
 
         public override void OnNetworkDespawn() => _current.OnValueChanged -= OnChanged;
 
-        // Returns true if this hit killed the target.
+        // Returns true if this hit killed the target. No damage while invulnerable.
         public bool ServerTakeDamage(int damage)
         {
-            if (!IsServer || _current.Value <= 0) return false;
+            if (!IsServer || _current.Value <= 0 || Time.time < _invulnerableUntil) return false;
             _current.Value = Damage.Apply(_current.Value, damage);
             return _current.Value <= 0;
         }
+
+        // Server: ignore damage for a moment (a dodge roll).
+        public void ServerSetInvulnerable(float seconds) => _invulnerableUntil = Time.time + seconds;
 
         public void ServerRestore()
         {

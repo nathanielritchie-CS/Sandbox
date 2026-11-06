@@ -1,0 +1,9 @@
+RPG Sound Pack by artisticdude
+https://opengameart.org/content/rpg-sound-pack
+
+License:
+CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Files used here (unchanged): battle/swing.wav, swing2.wav, swing3.wav; NPC/gutteral beast/mnstr1.wav, mnstr12.wav, mnstr14.wav, mnstr15.wav; interface/interface1.wav
+Placeholder audio, to be replaced.

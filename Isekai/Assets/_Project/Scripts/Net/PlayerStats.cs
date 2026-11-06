@@ -10,6 +10,7 @@ namespace Isekai.Net
     {
         [SerializeField] private StatsDefinition _definition;
         [SerializeField] private StatusEventChannel _statusChannel;
+        [SerializeField] private ParticleSystem _levelUpBurst; // optional: plays on every peer when this player levels up
 
         private readonly NetworkVariable<int> _xp = new();
 
@@ -44,7 +45,10 @@ namespace Isekai.Net
         private void OnXpChanged(int previous, int current)
         {
             if (IsOwner) Publish();
+            if (_levelUpBurst != null && LevelAt(current) > LevelAt(previous)) _levelUpBurst.Play();
         }
+
+        private int LevelAt(int xp) => Progression.FromTotalXp(xp, _definition.XpPerLevel).Level;
 
         private void Publish()
         {

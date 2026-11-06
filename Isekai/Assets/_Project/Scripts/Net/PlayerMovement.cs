@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Isekai.Core.Events;
+using Isekai.Data.Movement;
 using Isekai.Gameplay.Movement;
 using Unity.Netcode;
 using UnityEngine;
@@ -8,13 +9,17 @@ using UnityEngine.SceneManagement;
 
 namespace Isekai.Net
 {
-    [RequireComponent(typeof(CharacterController), typeof(NetworkHealth))]
+    [RequireComponent(typeof(CharacterController), typeof(NetworkHealth), typeof(PlayerStamina))]
     public class PlayerMovement : NetworkBehaviour
     {
+        private const float SprintThreshold = 1.2f; // moving faster than walk speed × this counts as sprinting
+
         [SerializeField] private InputActionReference _move;
         [SerializeField] private InputActionReference _sprint;
+        [SerializeField] private InputActionReference _roll;
         [SerializeField] private TransformEventChannel _localPlayerChannel;
         [SerializeField] private TransformEventChannel _cameraChannel;
+        [SerializeField] private MobilityDefinition _mobility;
         [SerializeField] private float _walkSpeed = 4f;
         [SerializeField] private float _sprintSpeed = 7f;
         [SerializeField] private float _turnSpeed = 720f;
@@ -28,11 +33,24 @@ namespace Isekai.Net
         private Vector3 _lastValidPosition;
         private Vector3 _spawnPoint;
         private float _checkTimer;
+        private PlayerStamina _stamina;
+        private CharacterAnimator _animator; // optional
+        private Vector3 _rollDirection;
+        private float _rollTimeLeft;
+        private bool _exhausted;
+        private float _serverRollEnd = float.MinValue;
+        private bool _windowHadStamina = true;
+        private Vector3 _lastServerPosition;
+        private float _windowPath; // ground covered this window, turns included
+
+        public bool ServerIsRolling => Time.time < _serverRollEnd;
 
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
             _health = GetComponent<NetworkHealth>();
+            _stamina = GetComponent<PlayerStamina>();
+            _animator = GetComponent<CharacterAnimator>();
         }
 
         public override void OnNetworkSpawn()
@@ -40,6 +58,7 @@ namespace Isekai.Net
             // shortcut: spawn points are a line by client id; replace with real spawn points later.
             _spawnPoint = new Vector3(OwnerClientId * 2f, 1f, 0f);
             _lastValidPosition = _spawnPoint;
+            _lastServerPosition = transform.position;
 
             if (!IsOwner) return;
             Teleport(_spawnPoint);
@@ -47,6 +66,7 @@ namespace Isekai.Net
             NetworkManager.SceneManager.OnLoadEventCompleted += ReturnToSpawn;
             _move.action.Enable();
             _sprint.action.Enable();
+            _roll.action.Enable();
             _localPlayerChannel.Raise(transform);
         }
 
@@ -69,24 +89,69 @@ namespace Isekai.Net
         {
             var camera = _cameraChannel.Current;
             var direction = MoveDirection.FromInput(_move.action.ReadValue<Vector2>(), camera != null ? camera.eulerAngles.y : 0f);
-            var speed = _sprint.action.IsPressed() ? _sprintSpeed : _walkSpeed;
-            _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + _gravity * Time.deltaTime;
-            _controller.Move((direction * speed + Vector3.up * _verticalVelocity) * Time.deltaTime);
+            if (_roll.action.WasPressedThisFrame()) TryRoll(direction);
 
-            if (direction.sqrMagnitude > 0.001f)
+            var rolling = _rollTimeLeft > 0f;
+            if (rolling) _rollTimeLeft -= Time.deltaTime;
+            var velocity = rolling ? _rollDirection * (_mobility.RollDistance / _mobility.RollSeconds) : direction * WalkOrSprintSpeed();
+            _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + _gravity * Time.deltaTime;
+            _controller.Move((velocity + Vector3.up * _verticalVelocity) * Time.deltaTime);
+
+            if (!rolling && direction.sqrMagnitude > 0.001f)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), _turnSpeed * Time.deltaTime);
+        }
+
+        // After running dry, sprinting waits until some stamina is back.
+        private float WalkOrSprintSpeed()
+        {
+            if (_stamina.Current <= 0) _exhausted = true;
+            else if (_stamina.Current >= _mobility.SprintRestart) _exhausted = false;
+            return _sprint.action.IsPressed() && !_exhausted ? _sprintSpeed : _walkSpeed;
+        }
+
+        // Owner: roll at once if the replicated stamina allows; the server decides whether it counts (cost, invulnerability).
+        private void TryRoll(Vector3 direction)
+        {
+            if (_rollTimeLeft > 0f || _stamina.Current < _mobility.RollCost) return;
+            _rollDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : transform.forward;
+            transform.rotation = Quaternion.LookRotation(_rollDirection);
+            _rollTimeLeft = _mobility.RollSeconds;
+            if (_animator != null) _animator.PlayRollLocal();
+            RollRpc();
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+        private void RollRpc()
+        {
+            if (!_health.IsAlive || ServerIsRolling || !_stamina.ServerTrySpend(_mobility.RollCost)) return;
+            _serverRollEnd = Time.time + _mobility.RollSeconds;
+            _health.ServerSetInvulnerable(_mobility.InvulnerableSeconds);
+            if (_animator != null) _animator.ServerPlayRoll();
         }
 
         private void CheckSpeed()
         {
+            var step = transform.position - _lastServerPosition;
+            step.y = 0f;
+            _windowPath += step.magnitude;
+            _lastServerPosition = transform.position;
             _checkTimer += Time.deltaTime;
             if (_checkTimer < _speedCheckInterval) return;
 
-            if (MovementValidator.IsWithinSpeed(_lastValidPosition, transform.position, _checkTimer, _sprintSpeed * _speedTolerance))
+            // A roll is a short burst: a window that had one may move at sprint pace, and isn't billed as sprinting.
+            var rolled = Time.time - _serverRollEnd < _checkTimer;
+            var maxSpeed = (_windowHadStamina || rolled ? _sprintSpeed : _walkSpeed) * _speedTolerance;
+            if (MovementValidator.IsWithinSpeed(_lastValidPosition, transform.position, _checkTimer, maxSpeed))
+            {
+                if (!rolled && _windowPath / _checkTimer > _walkSpeed * SprintThreshold)
+                    _stamina.ServerDrain(_mobility.SprintDrainPerSecond * _checkTimer);
                 _lastValidPosition = transform.position;
+            }
             else
                 SnapBackRpc(_lastValidPosition);
             _checkTimer = 0f;
+            _windowPath = 0f;
+            _windowHadStamina = _stamina.Current > 0;
         }
 
         // Server: put the owner back at their spawn point (after death).

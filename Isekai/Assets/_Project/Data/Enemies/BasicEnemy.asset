@@ -17,3 +17,4 @@ MonoBehaviour:
   _attackRange: 1.5
   _attackDamage: 8
   _attackCooldown: 1.2
+  _attackImpactDelay: 0.25

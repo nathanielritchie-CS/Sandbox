@@ -9,7 +9,7 @@ namespace Isekai.UI
     {
         [SerializeField] private StatusEventChannel _status;
         [SerializeField] private GameObject _panel;
-        [SerializeField] private UnityEngine.UI.Text _text;
+        [SerializeField] private TMPro.TMP_Text _text;
         [SerializeField] private InputAction _toggle = new("ToggleStatus", InputActionType.Button, "<Keyboard>/c");
 
         private void OnEnable()

@@ -7,8 +7,8 @@ namespace Isekai.UI
     public class ConnectionMenu : MonoBehaviour
     {
         [SerializeField] private ConnectionRequestChannel _requests;
-        [SerializeField] private InputField _address;
-        [SerializeField] private InputField _port;
+        [SerializeField] private TMPro.TMP_InputField _address;
+        [SerializeField] private TMPro.TMP_InputField _port;
         [SerializeField] private Button _hostButton;
         [SerializeField] private Button _joinButton;
 
