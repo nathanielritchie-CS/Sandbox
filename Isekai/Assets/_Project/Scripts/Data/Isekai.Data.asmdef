@@ -1,0 +1,8 @@
+{
+    "name": "Isekai.Data",
+    "rootNamespace": "Isekai.Data",
+    "references": [
+        "Isekai.Core"
+    ],
+    "autoReferenced": true
+}

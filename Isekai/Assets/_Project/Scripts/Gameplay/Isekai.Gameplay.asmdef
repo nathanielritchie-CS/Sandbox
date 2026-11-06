@@ -1,0 +1,9 @@
+{
+    "name": "Isekai.Gameplay",
+    "rootNamespace": "Isekai.Gameplay",
+    "references": [
+        "Isekai.Core",
+        "Isekai.Data"
+    ],
+    "autoReferenced": true
+}

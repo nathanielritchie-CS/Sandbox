@@ -1,0 +1,10 @@
+{
+    "name": "Isekai.Net",
+    "rootNamespace": "Isekai.Net",
+    "references": [
+        "Isekai.Core",
+        "Isekai.Gameplay",
+        "Unity.Netcode.Runtime"
+    ],
+    "autoReferenced": true
+}

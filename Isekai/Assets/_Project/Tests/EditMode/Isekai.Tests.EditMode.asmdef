@@ -1,0 +1,22 @@
+{
+    "name": "Isekai.Tests.EditMode",
+    "rootNamespace": "Isekai.Tests.EditMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Isekai.Core",
+        "Isekai.Data",
+        "Isekai.Gameplay"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ]
+}
