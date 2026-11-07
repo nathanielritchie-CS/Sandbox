@@ -17,6 +17,7 @@ namespace Isekai.Net
         [SerializeField] private InputActionReference _move;
         [SerializeField] private InputActionReference _sprint;
         [SerializeField] private InputActionReference _roll;
+        [SerializeField] private InputActionReference _jump;
         [SerializeField] private TransformEventChannel _localPlayerChannel;
         [SerializeField] private TransformEventChannel _cameraChannel;
         [SerializeField] private MobilityDefinition _mobility;
@@ -24,6 +25,7 @@ namespace Isekai.Net
         [SerializeField] private float _sprintSpeed = 7f;
         [SerializeField] private float _turnSpeed = 720f;
         [SerializeField] private float _gravity = -20f;
+        [SerializeField] private float _jumpHeight = 1f;
         [SerializeField] private float _speedCheckInterval = 0.5f;
         [SerializeField] private float _speedTolerance = 1.5f;
         [SerializeField] private float _busySpeedFactor = 0.3f; // while swinging or charging, so the feet don't skate
@@ -47,6 +49,7 @@ namespace Isekai.Net
 
         public bool ServerIsRolling => Time.time < _serverRollEnd;
         public bool IsRolling => _rollTimeLeft > 0f; // owner's own view
+        public bool IsGrounded => _controller.isGrounded; // owner's own view
 
         private void Awake()
         {
@@ -71,6 +74,7 @@ namespace Isekai.Net
             _move.action.Enable();
             _sprint.action.Enable();
             _roll.action.Enable();
+            _jump.action.Enable();
             _localPlayerChannel.Raise(transform);
         }
 
@@ -99,8 +103,16 @@ namespace Isekai.Net
             if (rolling) _rollTimeLeft -= Time.deltaTime;
             var busy = _animator != null && _animator.IsBusy;
             var velocity = rolling ? _rollDirection * (_mobility.RollDistance / _mobility.RollSeconds) : direction * (WalkOrSprintSpeed() * (busy ? _busySpeedFactor : 1f));
-            _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + _gravity * Time.deltaTime;
-            _controller.Move((velocity + Vector3.up * _verticalVelocity) * Time.deltaTime);
+            var jump = _jump.action.WasPressedThisFrame() && _controller.isGrounded && !rolling && !busy;
+            var startVelocity = jump ? Mathf.Sqrt(-2f * _gravity * _jumpHeight) : _controller.isGrounded ? -1f : _verticalVelocity;
+            _verticalVelocity = _controller.isGrounded && !jump ? -1f : startVelocity + _gravity * Time.deltaTime;
+            if (jump)
+            {
+                if (_animator != null) _animator.PlayJumpLocal();
+                JumpRpc();
+            }
+            // The frame's average vertical speed: the jump keeps its height even through a long frame.
+            _controller.Move((velocity + Vector3.up * ((startVelocity + _verticalVelocity) * 0.5f)) * Time.deltaTime);
 
             // Locked on: always face the target; moving sideways or back then plays the strafe animations.
             var facing = direction;
@@ -140,6 +152,13 @@ namespace Isekai.Net
             _serverRollEnd = Time.time + _mobility.RollSeconds;
             _health.ServerSetInvulnerable(_mobility.InvulnerableSeconds);
             if (_animator != null) _animator.ServerPlayRoll();
+        }
+
+        // Animation only: the jump itself is owner movement, which the server checks like any other.
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+        private void JumpRpc()
+        {
+            if (_health.IsAlive && _animator != null) _animator.ServerPlayJump();
         }
 
         private void CheckSpeed()

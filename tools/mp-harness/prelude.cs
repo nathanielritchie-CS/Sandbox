@@ -87,7 +87,7 @@ string Anim(Component character) {
     if (a == null) return "no animator yet";
     if (!a.isActiveAndEnabled) return a.name + ":hidden";
     var i = a.GetCurrentAnimatorStateInfo(0);
-    var named = new[] { "Attack", "Attack2", "Attack3", "Heavy", "Charge", "Roll", "Hit", "Death" }.FirstOrDefault(n => i.IsName(n));
+    var named = new[] { "Attack", "Attack2", "Attack3", "Heavy", "Charge", "Roll", "Hit", "Death", "JumpUp", "Fall", "Land" }.FirstOrDefault(n => i.IsName(n));
     var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : named ?? (a.GetNextAnimatorStateInfo(0).IsName("Roll") ? "->Roll" : "?");
     return a.name + ":" + s;
 }

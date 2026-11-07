@@ -17,6 +17,8 @@ namespace Isekai.Net
         [SerializeField] private InputActionReference _attack;
         [SerializeField] private AttackDefinition[] _combo; // the light-attack chain, in order
         [SerializeField] private AttackDefinition _heavy;   // charged: keep holding attack after a swing
+        [SerializeField] private AttackDefinition[] _swordCombo; // the same chain with the sword in hand
+        [SerializeField] private AttackDefinition _swordHeavy;
         [SerializeField] private float _comboWindow = 1f;   // a light attack this soon after the last one continues the chain
         [SerializeField] private float _chargeAfter = 0.45f; // holding attack this long after the press starts a charge
 
@@ -27,6 +29,11 @@ namespace Isekai.Net
         private PlayerStamina _stamina;
         private PlayerLockOn _lockOn; // optional
         private ComboChain _chain;
+        private PlayerWeapon _weapon; // optional
+
+        private bool Armed => _weapon != null && _weapon.IsArmed;
+        private AttackDefinition[] Combo => Armed ? _swordCombo : _combo;
+        private AttackDefinition Heavy => Armed ? _swordHeavy : _heavy;
         private float _nextAttackTime;
         private float _serverChargeStart = -1f;
 
@@ -45,6 +52,7 @@ namespace Isekai.Net
             _movement = GetComponent<PlayerMovement>();
             _stamina = GetComponent<PlayerStamina>();
             _lockOn = GetComponent<PlayerLockOn>();
+            _weapon = GetComponent<PlayerWeapon>();
             _chain = new ComboChain(_combo.Length, _comboWindow);
         }
 
@@ -71,6 +79,7 @@ namespace Isekai.Net
         // Owner: a click swings at once; holding on afterwards charges the heavy blow.
         private void Press()
         {
+            if (!_movement.IsGrounded) return; // no swings in mid-air
             _holding = true;
             _pressTime = Time.time;
             FaceTarget();
@@ -109,11 +118,11 @@ namespace Isekai.Net
                     return;
                 }
                 var held = Time.time - _chargeStart;
-                if (_cuesShown == 0 && held >= _heavy.ChargeReadySeconds) ShowCue(false);
-                if (_cuesShown == 1 && held >= _heavy.ChargeFullSeconds) ShowCue(true);
+                if (_cuesShown == 0 && held >= Heavy.ChargeReadySeconds) ShowCue(false);
+                if (_cuesShown == 1 && held >= Heavy.ChargeFullSeconds) ShowCue(true);
                 return;
             }
-            if (!_holding || Time.time - _pressTime < _chargeAfter || _stamina.Current < _heavy.StaminaCost || _movement.IsRolling) return;
+            if (!_holding || Time.time - _pressTime < _chargeAfter || _stamina.Current < Heavy.StaminaCost || _movement.IsRolling) return;
             _charging = true;
             _chargeStart = Time.time;
             _cuesShown = 0;
@@ -147,7 +156,7 @@ namespace Isekai.Net
         {
             if (!CanAttack()) return;
             var step = _chain.Next(Time.time);
-            var attack = _combo[step - 1];
+            var attack = Combo[step - 1];
             Strike(attack, step, attack.Damage, target);
         }
 
@@ -155,7 +164,7 @@ namespace Isekai.Net
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
         private void ChargeRpc()
         {
-            if (_serverChargeStart >= 0f || !_health.IsAlive || _movement.ServerIsRolling || _stamina.Current < _heavy.StaminaCost) return;
+            if (_serverChargeStart >= 0f || !_health.IsAlive || _movement.ServerIsRolling || _stamina.Current < Heavy.StaminaCost) return;
             _serverChargeStart = Time.time;
             if (_presentation != null) _presentation.ServerSetCharging(true);
         }
@@ -166,10 +175,10 @@ namespace Isekai.Net
             if (_serverChargeStart < 0f) return;
             var charged = Time.time - _serverChargeStart + ChargeGraceSeconds;
             ServerStopCharge();
-            var damage = ChargeLevel.Damage(charged, _heavy.ChargeReadySeconds, _heavy.ChargeFullSeconds, _heavy.Damage, _heavy.MaxDamage);
-            if (damage <= 0 || !CanAttack() || !_stamina.ServerTrySpend(_heavy.StaminaCost)) return;
+            var damage = ChargeLevel.Damage(charged, Heavy.ChargeReadySeconds, Heavy.ChargeFullSeconds, Heavy.Damage, Heavy.MaxDamage);
+            if (damage <= 0 || !CanAttack() || !_stamina.ServerTrySpend(Heavy.StaminaCost)) return;
             _chain.Reset();
-            Strike(_heavy, 0, damage, target);
+            Strike(Heavy, 0, damage, target);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]

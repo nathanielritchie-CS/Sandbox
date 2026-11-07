@@ -6,10 +6,18 @@ Isekai-style online co-op action RPG. Players die in their old life, are reincar
 - The game opens in an extremely dangerous situation. The player can walk around freely within it, but it is not survivable. Eventually something kills the player and everything goes dark.
 - The player then takes the form of an astral body in a scene surrounded by the cosmos. A voice explains, through dialogue, what happened to them and what happens next: reincarnation.
 - In the cosmic space the player:
-  - creates the visual appearance of their new character
+  - creates the visual appearance of their new character and chooses their name
   - chooses a character class
   - chooses a single item
 - Something then thrusts them into the new world, where they wake up with nothing.
+- Each player goes through the cosmic space alone, from the title screen, before their first session; the new character is saved on their PC and joins co-op sessions as themselves.
+
+## Character creation
+- One body with a separate slider for every feature (height, build, shoulders, chest, waist, hips, face shape, eyes, nose, mouth, ears...), so any mix of features is possible; there is no single male/female switch.
+- Colours for every part (skin, hair, eyes, clothes, leather, metal), plus swappable hairstyles, facial hair, clothes and accessories.
+- Clothes and gear always reshape to fit the body the player made.
+- The look and the name are permanent. Only rare special circumstances (still to be designed) can change them.
+- Appearance is purely cosmetic: it never changes reach, speed or how easy you are to hit.
 
 ## What makes the player special
 - The status system is innate to the new world. Natives have one too, but it does not manifest visually for them.
@@ -33,6 +41,8 @@ Ways to make money:
 - Each character class starts with a set of extremely basic default combat abilities.
 - Players develop new abilities or combat mechanics through combat or by acquiring them as they progress.
 - A stamina bar limits sprinting, dodge rolls and heavy attacks, and refills after a short pause.
+- Every Otherworlder starts unarmed and fights with punches and kicks. Weapons are found in the world and picked up (E). A weapon changes your moves and hits harder and further. The first is a worn starter sword.
+- Space jumps (about a metre); the dodge roll is on Left Ctrl.
 - Melee: clicks chain into a light combo; holding the button after a swing charges a heavy blow that hits harder the longer it is held. Swings and charges slow you down, so attacks have weight.
 - Lock-on (right click) targets the enemy you are looking at. A dedicated camera keeps both you and the enemy in view, you keep facing it and strafe or back off around it, and attacks go to it.
 
@@ -82,6 +92,7 @@ Mostly light, with some moments of darkness. Kept modest, given this is not a AA
 ## Still undecided
 - The deadly opening scenario, and what kills the player.
 - What thrusts the player from the cosmic space into the new world.
+- The rare special circumstances that let a player change their look or name.
 - Whether the class and single-item choice in the cosmic space stays (may change).
 - The final stat list, and how stats differ by class.
 - Combat mechanics in depth (parrying, weak spots, stealth).

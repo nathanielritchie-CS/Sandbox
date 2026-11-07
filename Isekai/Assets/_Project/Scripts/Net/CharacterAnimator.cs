@@ -19,7 +19,8 @@ namespace Isekai.Net
         private static readonly int ChargingId = Animator.StringToHash("Charging");
         private static readonly int MoveXId = Animator.StringToHash("MoveX");
         private static readonly int MoveZId = Animator.StringToHash("MoveZ");
-        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int JumpId = Animator.StringToHash("Jump");
+        private static readonly int GroundedId = Animator.StringToHash("Grounded");
         private const float TeleportSpeed = 15f; // faster than anything can move: a teleport (respawn), not a run
         private const string AttackTag = "Attack"; // swing, heavy and charge states
 
@@ -36,12 +37,14 @@ namespace Isekai.Net
         [SerializeField] private ParticleSystem _chargeSparks; // optional: players only
         [SerializeField] private int _readySparks = 10;
         [SerializeField] private int _fullSparks = 24;
-        [SerializeField] private Material _outfit;        // optional: this material is tinted per player
-        [SerializeField] private Color[] _outfitColors;   // by client id
+        [SerializeField] private float _groundRay = 1.15f; // root to feet (1 m on the player capsule) plus a little
 
         private NetworkHealth _health;
         private Animator _animator;
         private bool _directional; // the controller blends locomotion by direction (MoveX/MoveZ, m/s in the character's frame)
+        private bool _jumps;       // the controller has Jump/Grounded
+        private RuntimeAnimatorController _ownMoves;
+        private RuntimeAnimatorController _moves; // null = the model's own controller
         private Vector3 _lastPosition;
         private int _lastHealth;
         private float _deadSeconds;
@@ -57,31 +60,17 @@ namespace Isekai.Net
             var chosen = (int)(OwnerClientId % (ulong)_variants.Length);
             for (var i = 0; i < _variants.Length; i++) _variants[i].gameObject.SetActive(i == chosen);
             _animator = _variants[chosen];
-            _directional = false;
-            foreach (var parameter in _animator.parameters) _directional |= parameter.nameHash == MoveXId;
-            TintOutfit();
+            _ownMoves = _animator.runtimeAnimatorController;
+            if (_moves != null) _animator.runtimeAnimatorController = _moves;
+            _directional = _jumps = false;
+            foreach (var parameter in _animator.parameters)
+            {
+                _directional |= parameter.nameHash == MoveXId;
+                _jumps |= parameter.nameHash == GroundedId;
+            }
             _lastPosition = transform.position;
             _lastHealth = _health.Current;
             _health.Changed += OnHealthChanged;
-        }
-
-        // Each player's outfit in its own colour, so co-op players can tell each other apart.
-        private void TintOutfit()
-        {
-            if (_outfit == null || _outfitColors == null || _outfitColors.Length == 0) return;
-            var color = _outfitColors[(int)(OwnerClientId % (ulong)_outfitColors.Length)];
-            var block = new MaterialPropertyBlock();
-            foreach (var r in _animator.GetComponentsInChildren<Renderer>(true))
-            {
-                var materials = r.sharedMaterials;
-                for (var i = 0; i < materials.Length; i++)
-                {
-                    if (materials[i] != _outfit) continue;
-                    r.GetPropertyBlock(block, i);
-                    block.SetColor(BaseColorId, color);
-                    r.SetPropertyBlock(block, i);
-                }
-            }
         }
 
         public override void OnNetworkDespawn() => _health.Changed -= OnHealthChanged;
@@ -108,6 +97,31 @@ namespace Isekai.Net
                 _animator.SetFloat(MoveZId, local.z, _speedDampSeconds, Time.deltaTime);
             }
             _animator.SetBool(DeadId, dead);
+            // Every peer probes the ground under every character, so remote players land in step with their movement.
+            if (_jumps) _animator.SetBool(GroundedId, Physics.Raycast(transform.position, Vector3.down, _groundRay, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore));
+        }
+
+        // Another moveset with the same parameters and states (e.g. the sword's); null = the model's own. Works before or after spawn.
+        public void UseMoves(RuntimeAnimatorController moves)
+        {
+            _moves = moves;
+            if (_animator != null) _animator.runtimeAnimatorController = moves != null ? moves : _ownMoves;
+        }
+
+        // Owner: show its own jump at once; the server shows it to everyone else.
+        public void PlayJumpLocal() => PlayJump();
+
+        public void ServerPlayJump()
+        {
+            if (IsServer) JumpRpc();
+        }
+
+        [Rpc(SendTo.NotOwner, InvokePermission = RpcInvokePermission.Server)]
+        private void JumpRpc() => PlayJump();
+
+        private void PlayJump()
+        {
+            if (_jumps && _animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(JumpId);
         }
 
         // Server: show this character's attack on every peer. comboStep 1..n picks a player's combo animation; 0 = the only attack.

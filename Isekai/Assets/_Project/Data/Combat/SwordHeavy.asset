@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b15d5a39b508f2948b8787b87599448b, type: 3}
+  m_Name: SwordHeavy
+  m_EditorClassIdentifier: Isekai.Data::Isekai.Data.Combat.AttackDefinition
+  _damage: 23
+  _range: 2.9
+  _arcDegrees: 120
+  _cooldown: 1
+  _impactDelay: 0.17
+  _staminaCost: 25
+  _maxDamage: 38
+  _chargeReadySeconds: 0.35
+  _chargeFullSeconds: 0.75

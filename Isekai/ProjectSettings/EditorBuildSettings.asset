@@ -14,5 +14,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/TestLevel.unity
     guid: 337e00c15bb52e84892053de79547bd6
+  - enabled: 1
+    path: Assets/_Project/Scenes/CosmicSpace.unity
+    guid: 9fba62351b21c594d9530da5ddace8a0
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Isekai.Core;
 using UnityEngine;
 
@@ -20,16 +21,17 @@ namespace Isekai.Net
         [SerializeField] private AudioClip[] _deathClips;  // layered on top of the hit
 
         private NetworkHealth _health;
-        private MaterialPropertyBlock _flash;
+        private Color _flashColor;
+        private MaterialPropertyBlock _block; // created in Awake: Unity forbids it in field initializers
+        private readonly List<(Renderer renderer, int slot, bool had, Color color)> _saved = new();
         private int _last;
 
         private void Awake()
         {
             _health = GetComponent<NetworkHealth>();
-            var color = Palette.Sunlight * _flashBrightness;
-            color.a = 1f;
-            _flash = new MaterialPropertyBlock();
-            _flash.SetColor(BaseColorId, color);
+            _block = new MaterialPropertyBlock();
+            _flashColor = Palette.Sunlight * _flashBrightness;
+            _flashColor.a = 1f;
         }
 
         private void OnEnable()
@@ -48,6 +50,7 @@ namespace Isekai.Net
                 Sfx.PlayRandom(_audio, _hitClips);
                 if (current <= 0) Sfx.PlayRandom(_audio, _deathClips);
                 StopAllCoroutines();
+                EndFlash(); // a hit during a flash: restore first, or the flash colour would be saved as the original
                 StartCoroutine(Flash());
             }
             _last = current;
@@ -55,16 +58,46 @@ namespace Isekai.Net
 
         private IEnumerator Flash()
         {
-            SetBlock(_flash);
+            StartFlash();
             yield return new WaitForSeconds(_flashSeconds);
-            SetBlock(null);
+            EndFlash();
         }
 
-        // Only the active model's renderers; inactive character variants are skipped.
-        private void SetBlock(MaterialPropertyBlock block)
+        // Per material slot, so a player's chosen colours (also per-slot blocks) come back afterwards.
+        // Only the active model's renderers; inactive ones are skipped.
+        private void StartFlash()
         {
             foreach (var r in GetComponentsInChildren<Renderer>())
-                if (!(r is ParticleSystemRenderer)) r.SetPropertyBlock(block);
+            {
+                if (r is ParticleSystemRenderer) continue;
+                for (var i = 0; i < r.sharedMaterials.Length; i++)
+                {
+                    r.GetPropertyBlock(_block, i);
+                    var had = _block.HasColor(BaseColorId);
+                    _saved.Add((r, i, had, had ? _block.GetColor(BaseColorId) : default));
+                    _block.SetColor(BaseColorId, _flashColor);
+                    r.SetPropertyBlock(_block, i);
+                }
+            }
+        }
+
+        private void EndFlash()
+        {
+            foreach (var (r, slot, had, color) in _saved)
+            {
+                if (r == null) continue;
+                if (had)
+                {
+                    r.GetPropertyBlock(_block, slot);
+                    _block.SetColor(BaseColorId, color);
+                    r.SetPropertyBlock(_block, slot);
+                }
+                else
+                {
+                    r.SetPropertyBlock(null, slot);
+                }
+            }
+            _saved.Clear();
         }
     }
 }

@@ -3,6 +3,7 @@
     "rootNamespace": "Isekai.UI",
     "references": [
         "Isekai.Core",
+        "Isekai.Data",
         "Isekai.Gameplay",
         "UnityEngine.UI",
         "Unity.TextMeshPro",

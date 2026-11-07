@@ -1,7 +1,16 @@
 # Progress
 
-## Start here (handoff, updated 2026-11-06)
-- **Where we are (end of the third 2026-11-06 session):** specs 16 rev 1 (lock camera), 17 (status window) and 18 (the Otherworlder: custom Blender character with strafing) are built and verified with host + client; the user got a rundown of what comes next and picks the order (see "Next steps"). Open: the user ticked "Other" for status window content with no text — ask what it was.
+## Start here (handoff, updated 2026-11-07)
+- **Fifth session (2026-11-07): spec 28 phase A, the Lich** — the user's Meshy model as a second enemy beside the Demon, with scripted animations; its cast does nothing yet (the user's call: "for now just the model with the animations"). Verified host + 1 client. Phase B (the ranged bolt; the user picked a ranged magic bolt) is drafted in the spec's Open questions and waits for their go. The user's `Lich.blend` moved to `art-source/` and its texture into `Art/Characters/Lich/` (both were in `Assets/` root).
+- **Where we were (end of the fourth session, 2026-11-07):** specs **19 Phase A** (character creation), **20** (the user's Meshy hero), **21** (jump) and **22** (starter sword pickup) are built and verified with host + 2 clients through the harness. All uncommitted; the user commits.
+  - **Asset changes:** the Otherworlder FBX import is now Humanoid (its clips are the hero's stand-ins), and the template's `Interact` action lost its Hold interaction.
+  - **Ask the user:**
+    - OK to delete the unused old Otherworlder/Quaternius character assets and `Scripts/UI/NameField.cs`?
+    - What was the "Other" status window item?
+  - The user may export the missing animations (list in Next steps).
+  - **Test save:** `%USERPROFILE%/AppData/LocalLow/DefaultCompany/Isekai/otherworlder.json` holds "Rin" (tan skin, green top). The Editor and the built client share it on one PC.
+  - Client build in `Builds/Client` is current (includes spec 22). 88/88 EditMode tests; compile 0 errors / 0 warnings; host console and client logs clean.
+- **Where we were (end of the third 2026-11-06 session):** specs 16 rev 1 (lock camera), 17 (status window) and 18 (the Otherworlder: custom Blender character with strafing) are built and verified with host + client. **Spec 19 (character creation in the cosmic space) is drafted from the user's decisions and waits for their go**, phase A first (`docs/specs/19-character-creation.md`). Open: the user ticked "Other" for status window content with no text — ask what it was.
 - **This session's brief (third 2026-11-06 session):** the user asked for (1) a real lock-on camera (spec 16 revision 1), (2) the actual anime-style status window — blue system hologram, toggle with C anytime, name typed on the title screen, class/title lines, spend stat points (spec 17), (3) a new player character modeled, rigged and animated in Blender with strafing and real attack animations (spec 18; young man, ~6 heads, sword + light armor, one model for all players with per-player outfit color), then (4) a rundown of everything that comes next. Blender 5.1 is installed (`C:\Program Files\Blender Foundation\Blender 5.1\blender.exe`); the Blender MCP connector is a Claude Desktop extension only, so Blender is driven headless (`blender --background --python`). Work order: 16 rev → 17 → 18. The user ticked "Other" for status window content with no text: ask. **Done so far: 16 revision 1 (lock camera) and 17 (status window) built and verified host + client; 18 (Blender character) in progress:** `tools/blender/otherworlder.py` builds the model (skin-modifier body, head/face/hair, fitted breastplate + pauldron, belt, collar, sword under the right hand bone), a Humanoid-named skeleton with automatic weights, and 17 actions (Idle; Walk/Run in 4 directions from a planted-foot gait; Attack1–3, Charge, Heavy, Hit, Roll, Death), and exports `Assets/_Project/Art/Characters/Otherworlder/Otherworlder.fbx`. Run it with Blender 5.1 `--background --factory-startup --python tools/blender/otherworlder.py -- --out <fbx> [--renders <dir>] [--blend <file>]`; contact sheets with `tools/blender/contact_sheet.py -- <renders> <out>`. Next: Unity import (Humanoid), animator with a 2D directional locomotion tree, `CharacterAnimator` MoveX/MoveZ + outfit colour, prefab swap, lock-on strafing.
 - **Where we were (end of the second 2026-11-06 session):** the user's priority list is built: **spec 14** (Esc menu, separate volume sliders, mouse lock) Done; **spec 15** (charged heavy on the left-click hold, weighty swings) and **spec 16** (lock-on on right click) built and verified, waiting for the MPPM sign-off. Spec 13 still has two checks open (dodgeable bite, damage numbers over the Demon/players). The user said "do these first, then discuss what's next": **the next session starts by discussing what's next with the user** (re-confirm the roadmap below; don't assume it).
 - **Repo:** everything through spec 13 is committed (`e3081e6 many chanegs`, by the user). Specs 14–16 are uncommitted working-tree changes (the user commits). Two of the changed files are build noise, not edits: `ProjectSettings.asset` (`preloadedAssets` gains the input actions during a build) and `LiberationSans SDF - Fallback.asset` (its dynamic glyph cache gets cleared); both can be discarded. Private restore points (not branches): `refs/snapshots/before-spec03`, `refs/snapshots/before-spec07`, `refs/snapshots/before-spec09` (= `02d25a2`).
@@ -42,6 +51,32 @@ Verified with the Editor as host and headless Windows development builds as clie
 
 - **Spec 18: the Otherworlder** (`docs/specs/18-otherworlder-character.md`, 2026-11-06). Every player is a custom young swordsman (~1.9 m, spiky hair, blue/red/green… outfit by client id, fitted steel breastplate and pauldron, sword in the right hand) made, rigged and animated by `tools/blender/otherworlder.py` (Blender 5.1, headless). 17 clips: idle; walk/run in four directions (planted-foot gait); three combo swings, charge, heavy, hit, roll, death. Imported as **Generic** (Humanoid lost the wrist twist), facing fixed by a 180° turn in the prefab; `Otherworlder.controller` with a 2D directional locomotion tree on MoveX/MoveZ. Locked on, you always face the target and strafe/back off with the real animations.
 
+- **Spec 19 Phase A: character creation** (`docs/specs/19-character-creation.md`, 2026-11-07).
+  - Title screen: "Create your Otherworlder" (Host/Join wait for it), or "Start over" with a warning.
+  - The `CosmicSpace` scene, loaded additively: nebula, stars, light disc, typewriter voice, the astral figure materializing.
+  - Hologram creator: 5 colour slots (swatches + hue/richness/light), Randomize, Reset, drag to turn, scroll to zoom. Then name → "Begin your new life" → saved to `otherworlder.json`.
+  - In a session: `PlayerAppearance` sends the saved look once (`SetLookRpc`), and the server checks it (`AppearanceCodec`).
+  - Phases B (sliders) and C (parts) need a new approach for the Meshy model.
+
+- **Spec 20: the hero** (`docs/specs/20-hero-model.md`, 2026-11-07). The user's Meshy model is every player.
+  - `tools/blender/hero.py` paints it into 5 flat-colour regions and exports `Art/Characters/Hero/Hero.fbx` (Humanoid) with 15 cut clips.
+  - Unarmed: left hook / jab + uppercut / sweeping kick combo, High Kick wind-up charge and heavy.
+  - Stand-ins retargeted from the Otherworlder: idle, strafe, back, roll, hit, death.
+
+- **Spec 21: jump** (`docs/specs/21-jump.md`, 2026-11-07).
+  - Space jumps 1 m (Regular_Jump cut into JumpUp/Fall/Land). `Grounded` comes from a ground ray on every peer.
+  - Roll is on Left Ctrl. No jumping mid-attack or mid-roll, no attacking mid-air.
+
+- **Spec 22: starter sword** (`docs/specs/22-starter-sword.md`, 2026-11-07).
+  - A worn blade (`tools/blender/starter_sword.py`) stuck in the ground at (−3, 0, 2) in TestLevel. E in reach (prompt "E  Pick up Sword") arms you; the server checks the pickup.
+  - The sword shows in the right hand, and the moves switch to `HeroSword.overrideController` (Weapon_Combo_2 cuts).
+  - ×1.5 damage and +0.5 m reach. The pickup returns after 20 s. Kept for the session.
+
+- **Spec 28 phase A: the Lich** (`docs/specs/28-lich-enemy.md`, 2026-11-07).
+  - A ~1.8 m hooded wraith with a crystal staff at (−10, 12) in TestLevel: aggro 12 m, glides at 2.5 m/s, casts every 2.2 s from ≤ 9 m and settles ~7 m away. **The cast does no damage** (`EnemyDefinition` damage 0 = animation only).
+  - 50 HP, 45 XP, Hit/Death, hides 2.5 s after death, returns home after 10 s, lock-on works.
+  - Clips from `tools/blender/lich.py`: Idle (the user's Float_Glide), Glide, Cast, Hit, Death (sinks into the ground).
+
 ## In progress
 - User decisions behind 14–16 (2026-11-06): lock-on on right click, target = closest to the middle of the screen, the dummy counts, free running while locked (no strafe clips exist, the rigs are Generic), swings slow you to ~30%, heavy becomes "swing then hold to charge" on left click with damage scaling 15 → 25, separate Master/Effects/Ambience sliders.
 - **Spec 13: combat depth I** (`docs/specs/13-combat-depth-1.md`). Built: 3-hit light combo (`ComboChain`, 1.0 s window; `BasicAttack` 5 / `ComboAttack2` 6 / `ComboAttack3` 9 damage + Attack stat), heavy attack on right mouse (`HeavyAttack`: 15, 25 stamina, impact 0.6 s), the Demon's bite re-checked at impact (misses beyond 1.3 × its attack range), `DamageNumbers` (pooled world-space TMP, warm white / Danger red), hit-stop (server → owner `HitConfirmRpc`, animator paused 60 ms). Verified on host + client: combo damage 10 → 11 → 14 and restart after a pause, the client sees `Attack > Attack2 > Attack3`, heavy 20 damage / −25 stamina / refused at 10, numbers over the dummy, hit-stop on both. **Left to do:**
@@ -52,8 +87,14 @@ Verified with the Editor as host and headless Windows development builds as clie
 - Class list decided (design doc): Magic Swordsman, Archer, Assassin, Tank, secret Predator (steals monster abilities; developer only for now; how to keep it to the developer is still open).
 
 ## Next steps
-1. Play specs 14–18 yourself (Esc menu; hold left click; right click on the dummy/Demon and strafe with A/D/S; C for the status window, spend points; your name on the title screen; the new character) — captures in `Isekai/Temp/harness/s16r3_*.png`, `s17_*.png`, `s18*.png` — then commit them.
-2. Your Multiplayer Play Mode sign-off for specs 01–07, 10, 12, 15–18; then set them Done.
+1. Play specs 14–22 yourself, then commit.
+   - **Controls:** Space jump, Left Ctrl roll, E at the sword, hold left click, right click lock-on, C status window.
+   - **Character creation:** Start over on the title screen.
+   - **Captures:** `Isekai/Temp/harness/s20_*.png`, `s22_*.png`, plus the earlier `s16r3_*`, `s17_*`, `s18*`.
+2. **Replace the stand-in animations** (they come from the old character): export them for the hero from Mixamo or Meshy's library, in place (Mixamo: FBX for Unity, without skin, 30 fps).
+   - **Clips:** Idle (or a fighting idle), Walk/Run Left, Walk/Run Right, Walk/Run Backwards, a dodge roll, a hit reaction, a death.
+   - Drop them in and the clips get swapped in `Hero.controller`.
+3. Your Multiplayer Play Mode sign-off for specs 01–07, 10, 12, 15–22; then set them Done.
 3. The rundown given to the user on 2026-11-06 (they choose the order):
    - **Finish what's open:** spec 13's two checks (dodgeable bite, damage numbers over the Demon/players); camera collision (a Cinemachine Deoccluder on both cameras); the "Other" status window item.
    - **Character polish (spec 18 follow-ups):** look-over by the user and tweaks via the script (proportions, face, colours); sword trail + swing sounds per combo step; a hit-reaction direction; a proper dodge/side-roll while locked on.
@@ -62,16 +103,45 @@ Verified with the Editor as host and headless Windows development builds as clie
    - **12 Stamina and dodge roll** — built and verified (waits for MPPM).
    - **13 Combat depth I** (in progress) — 3-hit combo (`Sword_Attack` → `Sword_AttackFast` → `Punch` clips exist), a heavy attack that spends stamina, enemy attacks re-checked at impact so stepping or rolling away works, floating damage numbers, local hit-stop on the attacker only.
    - **14 Game menu, 15 Charged heavy, 16 Lock-on** — inserted by the user on 2026-11-06 and built the same day; the roadmap below moved up by three numbers.
-   - **17 Status window** (done 2026-11-06: hologram, stat points, names), **18 The Otherworlder** (done 2026-11-06). The rest moved up again:
-   - **19 Items and inventory** — item definitions (ScriptableObjects), a server-owned 20-slot stacking inventory replicated to its owner, world pickups, an Inventory tab in the status window.
-   - **20 Equipment and potions** — weapon/armor slots feeding Attack/Defense; a health potion on a hotbar key with a cooldown.
-   - **21 Loot and money** — enemy loot tables (Luck), coin drops, money in the status window.
-   - **22 Classes** — class choice (menu stand-in for the cosmic space), Magic Swordsman / Archer / Assassin / Tank with 2 abilities each, mana and cooldowns, ranged attacks for the Archer; the secret Predator (steals monster abilities, developer only); the status window's class line becomes real.
+   - **17 Status window** (done 2026-11-06: hologram, stat points, names), **18 The Otherworlder** (done 2026-11-06).
+   - **19 Character creation in the cosmic space** (drafted 2026-11-06, phases A colours + creator + cosmic scene, B sliders, C parts). Phase A built; B/C need a new approach now that the player is the user's Meshy model.
+   - **20 The hero model, 21 Jump, 22 Starter sword** — inserted by the user on 2026-11-07 (their Meshy character). The rest moved up by three:
+   - **23 Items and inventory** — item definitions (ScriptableObjects), a server-owned 20-slot stacking inventory replicated to its owner, world pickups (generalising spec 22's sword pickup), an Inventory tab in the status window.
+   - **24 Equipment and potions** — weapon/armor slots feeding Attack/Defense, shown on the character (gear fits the body); a health potion on a hotbar key with a cooldown.
+   - **25 Loot and money** — enemy loot tables (Luck), coin drops, money in the status window.
+   - **26 Classes** — the class choice in the cosmic space (after creation), Magic Swordsman / Archer / Assassin / Tank with 2 abilities each, mana and cooldowns, ranged attacks for the Archer; the secret Predator (steals monster abilities, developer only); the status window's class line becomes real. The "single item" choice in the cosmic space comes with it or with items.
+   - **27 Dungeon generation (Wave Function Collapse)** — the full plan is written (`docs/specs/27-dungeon-generation.md`, 2026-11-07); the user isn't ready to build it yet. A layout graph decides the structure, WFC fills in the detail, and the server sends the solved grid to clients. Five phases. Prerequisites: more enemy types + a spawner, and items/loot for chests. Needs 9 decisions from the user first (listed in the spec).
+   - **28 The Lich** — phase A (model + animations) built 2026-11-07; phase B, its ranged bolt, waits for the user's go (plan in the spec).
    - Any time: quit to menu; more enemy types + a spawner; saving progress; a poof when the Demon's model hides; the Stamina stat raising max stamina.
-4. Design decisions still open (the spec that needs it in brackets): the class list and per-class stats [22]; parrying, weak spots, stealth [any time after 18]; what death costs [19–21]; what else "information about their new life" the status window shows (the user's "Other"); the party pact; whether the placeholder art bible/palette is acceptable.
+4. Design decisions still open (the spec that needs it in brackets): the class list and per-class stats [23]; parrying, weak spots, stealth [any time after 18]; what death costs [20–22]; what else "information about their new life" the status window shows (the user's "Other"); the rare circumstances that allow changing your look [after 19]; the party pact; whether the placeholder art bible/palette is acceptable.
 
 ## Current state (for a new session)
-- Test count: 79 EditMode tests, all passing.
+- Test count: 88 EditMode tests, all passing.
+- **Added 2026-11-07 (spec 28 A):**
+  - `Prefabs/Lich.prefab` (also in `DefaultNetworkPrefabs`, added by NGO): the Demon's component set; `Model` (local (0, −0.8, 0), scale 1) → `Lich` (instance of `Art/Characters/Lich/Lich.fbx`, Generic, import scale 2, faces +Z; Animator `Lich.overrideController` = `EnemyDemon.controller` with Idle/Glide/Cast/Hit/Death). `NetworkHealth` 50, `XpReward` 45, `EnemyAI` → `Data/Enemies/Lich.asset`, attack clips = the three swings, `DamageNumbers` height 1.4. One instance in TestLevel at (−10, 1, 12).
+  - `Art/Characters/Lich/`: `Lich.fbx`, `Lich.mat` (URP Lit, smoothness 0.15), the user's texture, `Lich.overrideController`. Source: `art-source/Lich.blend` (outside Unity).
+  - `EnemyAI`: no bite when the definition's damage is 0.
+- **Added 2026-11-07 (specs 19A–22):**
+  - **`Player.prefab`:**
+    - `Model/Hero`: an instance of `Art/Characters/Hero/Hero.fbx`, faces +Z, Humanoid `HeroAvatar`. Animator `Hero.controller`, no root motion. `AppearanceApplier` (catalog `OtherworlderAppearance`, 5 slots).
+    - `HeldSword` (hidden) under `mixamorig:RightHand`.
+    - New components: `PlayerAppearance`, `PlayerWeapon` (`_interact` = Player/Interact, `_swordMoves` = `HeroSword.overrideController`, `_prompt` = `PickupPromptChannel`).
+    - `PlayerAttack` has `_swordCombo` (`SwordAttack1`–`3`) and `_swordHeavy`; `PlayerMovement` has `_jump` (Player/Jump, `_jumpHeight` 1).
+  - **`CharacterAnimator`:**
+    - `UseMoves(controller)` swaps in a moveset.
+    - The Jump trigger is relayed like the roll; Grounded comes from a 1.15 m ray.
+  - **`Hero.controller`:** a copy of `Otherworlder.controller`.
+    - Locomotion2D uses Hero_Walk (×1.25) and Hero_Run; the rest are Otherworlder stand-ins (Humanoid, 180° root offset).
+    - Attack/Attack2/Attack3/Charge/Heavy use the Hero_ clips.
+    - New JumpUp/Fall/Land states with the `Jump` trigger and `Grounded` bool.
+  - **TestLevel:**
+    - `SwordPickup`: in-scene NetworkObject + `WeaponPickup` + 0.5 m trigger + `Visual` sword.
+    - `HealthCanvas/PickupPrompt` (`TextChannelLabel`).
+    - `PartyManager._pickupPrompt`: E skips invites while the prompt shows.
+  - **Bootstrap:** `CharacterPanel` (Column/CharacterPanel, StartOverConfirm).
+  - **`CosmicSpace` scene:** `NewSelf` = the hero (AstralForm, AppearanceApplier, MaterializeBurst), `CosmicCanvas` (creator, narration, name, confirm, whiteout), `CosmicVolume`.
+  - **Data:** `Data/Appearance/OtherworlderAppearance` (skin, hair, top, trousers, boots); `Data/Events/CharacterCreatedChannel`, `PickupPromptChannel`; `Data/Combat/Sword*`.
+  - **Input:** Jump = Space / South, Roll = Left Ctrl / East, Interact = E (press).
 - **Added 2026-11-06 (spec 18)** — `Player.prefab/Model` (local (0,−1,0), scale 1) holds only `Otherworlder` (instance of `Art/Characters/Otherworlder/Otherworlder.fbx`, turned 180°; Animator: `Otherworlder.controller`, Generic avatar, no root motion). `CharacterAnimator`: `_variants` = that Animator, `_outfit` = `Materials/Outfit.mat`, `_outfitColors` (6, by client id); it sets MoveX/MoveZ (velocity in the character's frame) when the controller has them. `Otherworlder.controller` = a copy of `PlayerCharacter.controller` (same parameters/transitions/tags) + MoveX/MoveZ, `Locomotion2D` (FreeformDirectional2D), Roll speed 1.1. `Art/Characters/Otherworlder/Materials/` (10 URP Lit materials, remapped on import). The Quaternius character assets are still in the project, unused by the player.
 - **Added 2026-11-06 (specs 16 rev 1, 17)** — TestLevel: `LockOnVcam` (CinemachineCamera, priority 20, off until locked; CinemachineFollow from `CameraRig/LockOnPivot`, RotationComposer on `CameraRig/LockOnFocus`, ImpulseListener), brain default blend 0.4 s; `StatusCanvas` rebuilt (sort 15, GraphicRaycaster, `StatusWindow`, open-blip AudioSource on SFX): `HoloPanel` (Scanlines, Frame, Header, Rule, Name/Class/Title rows, HP/STA/EXP meters, AbilitiesHeader, Stat0–6 with `Plus` buttons, Hint); `MenuCanvas` carries `InputGate` (both windows use it). Bootstrap: `Column/NameField` (copy of the join-code field + `NameField`, 16 chars). Player prefab: `PlayerStats` has `_nameChannel` / `_spendChannel`; `DefaultStats` 3 points per level. New channels `PlayerNameChannel`, `SpendPointChannel` (Text). Sprites `UI/Sprites/HoloPanel.png`, `HoloFrame.png`, `Scanlines.png` (generated). Font `UI/Fonts/Rajdhani/` (OFL, `Rajdhani SDF.asset` static ASCII). Code: `UI/{InputGate, NameField}`, `Gameplay/Players/PlayerName`, `Progression.PointsEarned`. PlayerPrefs keys: `player.name`, `volume.*`.
 - Build Settings: 0 Bootstrap, 1 SampleScene (disabled, template leftover), 2 TestLevel.
@@ -127,5 +197,8 @@ Verified with the Editor as host and headless Windows development builds as clie
 - **Harness, measuring attacks:** right after a click the previous attack's animation state and damage number can still be showing; measure damage by HP difference and the sequence from a watcher on the other peer. The heavy attack lands 0.6 s in. Editor evals can set `_lastValidPosition` by reflection and then `Call(me, "Teleport", pos)` to place the host anywhere without a snapback.
 - **Blender (spec 18):** Blender 5.1 at `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe` (4.4 also installed). The user's Blender MCP connector (Blender Lab) is a Claude Desktop extension, not available in Claude Code; the script runs headless instead: `blender --background --factory-startup --python tools/blender/otherworlder.py -- --out <fbx> --renders <dir> [--blend <file>]`. Lessons: a blade leaves the fist at right angles to the hand bone (`grip()`), so never aim hand and blade the same way; keep keyed quaternions sign-continuous (`make_compatible`) or big turns spin the long way; build parts at the origin before rotating; `ARMATURE_AUTO` weights work on the skin-modifier body; Humanoid import loses wrist twist (use Generic); the FBX faces −Z in Unity. Workbench renders + `tools/blender/contact_sheet.py` (one row per action) are the review loop.
 - **Harness, specs 14–16:** owner input can be driven from an eval: `Call(LocalAttack(), "Press")` / `"Release"` (hold timed in real seconds; the owner's 0.45 s charge threshold uses game time, and a client's game clock stalls while an eval starts, so the first hold of an eval can charge short), `Call(lockOn, "Toggle")` (`PlayerLockOn`, picks from the camera's current view: set the orbit's `HorizontalAxis.Value` first and wait ~2 s for the camera damping), `Call(menu, "OnToggle", <default CallbackContext>)` (`GameMenu`). On a client, `AttackRpc` / `ReleaseChargeRpc` take a `NetworkObjectReference` (`Activator.CreateInstance(T("Unity.Netcode.NetworkObjectReference"), networkObject)`; empty = no target). `InputAction.ReadValueAsObject()` returns null when nothing is pressed. `key W 9` keeps walking after the eval that measured it returns (the client ended up 30 m away once). Set a client's camera yaw through the boxed `HorizontalAxis` struct (`GetValue` → set `Value` → `SetValue`). Editor evals: `FindFirstObjectByType` is obsolete, use `FindAnyObjectByType`. Inline `script eval '...'` from PowerShell breaks on quotes and spaces: use `--file`.
+- **Harness, keys on the Editor host:** `InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(Key.Space))` from an Editor eval works (then queue an empty `KeyboardState()` to release). `Anim()` knows JumpUp/Fall/Land.
+- **Harness, saves:** the Editor and the built client share `otherworlder.json` on one PC. Give the client its own look by calling `CharacterSave.Create(...).Save()` via reflection after the host has spawned, then `CharacterPanel.Refresh` (private) for the name, then `join_client`.
 - **Harness/CLI:** player evals can't use `System.Diagnostics.Stopwatch` (use `Time.realtimeSinceStartup`); harness functions `cd` into the project, so use absolute paths after them; run tests with `unity command test run --mode EditMode` (prints a `Summary:` line), not `unity test run`.
+- **Blender (spec 28):** `blender --background --factory-startup --python tools/blender/lich.py -- --src art-source/Lich.blend --out Isekai/Assets/_Project/Art/Characters/Lich/Lich.fbx [--renders <dir>]`, then `contact_sheet.py` on the renders. Clips are the user's Float_Glide plus turns about armature axes (`turn()`; the rig faces −Y, +X tips the top forward). The rig's bones are Euler XYZ; the action API is Blender 5's slotted actions.
 - `docs/design/overview.md` has a "Still undecided" list — check it before writing any spec that touches those areas.

@@ -83,7 +83,7 @@ namespace Isekai.Net
 
             _nextAttackTime = Time.time + _definition.AttackCooldown;
             if (_presentation != null) _presentation.ServerPlayAttack();
-            StartCoroutine(ServerBite(target));
+            if (_definition.AttackDamage > 0) StartCoroutine(ServerBite(target)); // 0 = animation only (the Lich, until its bolt)
         }
 
         // The target is picked when the attack starts; the damage lands when the bite connects, if the target is still in reach

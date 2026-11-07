@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HeroSword
+  m_Controller: {fileID: 9100000, guid: 2239d373017a24144a8ca1d51a250f1d, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: -2946531270657724605, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+    m_OverrideClip: {fileID: 4435160991339400220, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+  - m_OriginalClip: {fileID: 4152485858229961735, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+    m_OverrideClip: {fileID: -7219151012686800344, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+  - m_OriginalClip: {fileID: 6701061649596872783, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+    m_OverrideClip: {fileID: -5306440331654827079, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+  - m_OriginalClip: {fileID: 638956062753088160, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+    m_OverrideClip: {fileID: 6543647307869816525, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+  - m_OriginalClip: {fileID: 8688881329050279478, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}
+    m_OverrideClip: {fileID: 7164426538147846467, guid: 7019e1c88769e7a4685615c379c76fcc, type: 3}

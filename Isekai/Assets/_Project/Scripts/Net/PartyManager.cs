@@ -15,6 +15,7 @@ namespace Isekai.Net
         private const ulong NoInviter = ulong.MaxValue;
 
         [SerializeField] private PartyEventChannel _channel;
+        [SerializeField] private TextEventChannel _pickupPrompt; // showing = a pickup is in reach and E is for it
         [SerializeField] private InputAction _interact = new("PartyInteract", InputActionType.Button, "<Keyboard>/e");
         [SerializeField] private InputAction _leave = new("PartyLeave", InputActionType.Button, "<Keyboard>/l");
         [SerializeField] private float _inviteRange = 5f;
@@ -56,9 +57,10 @@ namespace Isekai.Net
             foreach (var target in _scratch) ClearInvite(target);
         }
 
-        // E accepts a pending invite, otherwise invites the nearest player.
+        // E accepts a pending invite, otherwise invites the nearest player. A pickup in reach takes E first.
         private void OnInteract(InputAction.CallbackContext context)
         {
+            if (!string.IsNullOrEmpty(_pickupPrompt.Current)) return;
             if (_inviter != NoInviter) AcceptRpc();
             else InviteRpc();
         }
