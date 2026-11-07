@@ -45,5 +45,11 @@ namespace Isekai.Tests.EditMode
 
         [Test]
         public void StatGrowsPerLevel() => Assert.That(Progression.StatAtLevel(5, 2, 4), Is.EqualTo(11));
+
+        [Test]
+        public void LevelOne_HasNoPoints() => Assert.That(Progression.PointsEarned(1, 3), Is.EqualTo(0));
+
+        [Test]
+        public void EachLevelGained_GivesItsPoints() => Assert.That(Progression.PointsEarned(4, 3), Is.EqualTo(9));
     }
 }

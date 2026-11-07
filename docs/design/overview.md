@@ -33,6 +33,8 @@ Ways to make money:
 - Each character class starts with a set of extremely basic default combat abilities.
 - Players develop new abilities or combat mechanics through combat or by acquiring them as they progress.
 - A stamina bar limits sprinting, dodge rolls and heavy attacks, and refills after a short pause.
+- Melee: clicks chain into a light combo; holding the button after a swing charges a heavy blow that hits harder the longer it is held. Swings and charges slow you down, so attacks have weight.
+- Lock-on (right click) targets the enemy you are looking at. A dedicated camera keeps both you and the enemy in view, you keep facing it and strafe or back off around it, and attacks go to it.
 
 ## Progression
 - Killing monsters gives experience, and experience raises the player's level.

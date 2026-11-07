@@ -26,6 +26,7 @@ namespace Isekai.Net
         [SerializeField] private float _gravity = -20f;
         [SerializeField] private float _speedCheckInterval = 0.5f;
         [SerializeField] private float _speedTolerance = 1.5f;
+        [SerializeField] private float _busySpeedFactor = 0.3f; // while swinging or charging, so the feet don't skate
 
         private CharacterController _controller;
         private NetworkHealth _health;
@@ -35,6 +36,7 @@ namespace Isekai.Net
         private float _checkTimer;
         private PlayerStamina _stamina;
         private CharacterAnimator _animator; // optional
+        private PlayerLockOn _lockOn;        // optional
         private Vector3 _rollDirection;
         private float _rollTimeLeft;
         private bool _exhausted;
@@ -44,6 +46,7 @@ namespace Isekai.Net
         private float _windowPath; // ground covered this window, turns included
 
         public bool ServerIsRolling => Time.time < _serverRollEnd;
+        public bool IsRolling => _rollTimeLeft > 0f; // owner's own view
 
         private void Awake()
         {
@@ -51,6 +54,7 @@ namespace Isekai.Net
             _health = GetComponent<NetworkHealth>();
             _stamina = GetComponent<PlayerStamina>();
             _animator = GetComponent<CharacterAnimator>();
+            _lockOn = GetComponent<PlayerLockOn>();
         }
 
         public override void OnNetworkSpawn()
@@ -93,12 +97,21 @@ namespace Isekai.Net
 
             var rolling = _rollTimeLeft > 0f;
             if (rolling) _rollTimeLeft -= Time.deltaTime;
-            var velocity = rolling ? _rollDirection * (_mobility.RollDistance / _mobility.RollSeconds) : direction * WalkOrSprintSpeed();
+            var busy = _animator != null && _animator.IsBusy;
+            var velocity = rolling ? _rollDirection * (_mobility.RollDistance / _mobility.RollSeconds) : direction * (WalkOrSprintSpeed() * (busy ? _busySpeedFactor : 1f));
             _verticalVelocity = _controller.isGrounded ? -1f : _verticalVelocity + _gravity * Time.deltaTime;
             _controller.Move((velocity + Vector3.up * _verticalVelocity) * Time.deltaTime);
 
-            if (!rolling && direction.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), _turnSpeed * Time.deltaTime);
+            // Locked on: always face the target; moving sideways or back then plays the strafe animations.
+            var facing = direction;
+            var target = _lockOn != null ? _lockOn.Target : null;
+            if (target != null)
+            {
+                facing = target.transform.position - transform.position;
+                facing.y = 0f;
+            }
+            if (!rolling && facing.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(facing), _turnSpeed * Time.deltaTime);
         }
 
         // After running dry, sprinting waits until some stamina is back.

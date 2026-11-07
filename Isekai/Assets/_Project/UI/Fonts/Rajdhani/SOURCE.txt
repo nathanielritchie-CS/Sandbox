@@ -1,0 +1,3 @@
+Rajdhani SemiBold by the Indian Type Foundry, SIL Open Font License 1.1 (OFL.txt).
+Source: https://github.com/google/fonts/tree/main/ofl/rajdhani (downloaded 2026-11-06).
+Used for the status window (spec 17).

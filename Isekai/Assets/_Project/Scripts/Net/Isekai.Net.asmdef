@@ -11,7 +11,8 @@
         "Unity.Services.Authentication",
         "Unity.Services.Multiplayer",
         "Unity.InputSystem",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.Collections"
     ],
     "autoReferenced": true
 }

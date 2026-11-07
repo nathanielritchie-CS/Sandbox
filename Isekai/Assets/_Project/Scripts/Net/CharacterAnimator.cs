@@ -16,7 +16,12 @@ namespace Isekai.Net
         private static readonly int RollId = Animator.StringToHash("Roll");
         private static readonly int ComboId = Animator.StringToHash("Combo");
         private static readonly int HeavyId = Animator.StringToHash("Heavy");
+        private static readonly int ChargingId = Animator.StringToHash("Charging");
+        private static readonly int MoveXId = Animator.StringToHash("MoveX");
+        private static readonly int MoveZId = Animator.StringToHash("MoveZ");
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private const float TeleportSpeed = 15f; // faster than anything can move: a teleport (respawn), not a run
+        private const string AttackTag = "Attack"; // swing, heavy and charge states
 
         // One per look: players get one by client id, anything else uses the first.
         [SerializeField] private Animator[] _variants;
@@ -28,23 +33,55 @@ namespace Isekai.Net
         [SerializeField] private float _attackVolume = 0.5f;    // under the hit sound, which is the payoff
         [SerializeField] private AudioClip[] _rollClips;
         [SerializeField] private float _hitStopSeconds = 0.06f;
+        [SerializeField] private ParticleSystem _chargeSparks; // optional: players only
+        [SerializeField] private int _readySparks = 10;
+        [SerializeField] private int _fullSparks = 24;
+        [SerializeField] private Material _outfit;        // optional: this material is tinted per player
+        [SerializeField] private Color[] _outfitColors;   // by client id
 
         private NetworkHealth _health;
         private Animator _animator;
+        private bool _directional; // the controller blends locomotion by direction (MoveX/MoveZ, m/s in the character's frame)
         private Vector3 _lastPosition;
         private int _lastHealth;
         private float _deadSeconds;
 
         private void Awake() => _health = GetComponent<NetworkHealth>();
 
+        // A swing, heavy or charge is playing (or about to): the owner moves slower meanwhile.
+        public bool IsBusy => _animator != null && _animator.isActiveAndEnabled &&
+            (_animator.GetCurrentAnimatorStateInfo(0).IsTag(AttackTag) || _animator.GetNextAnimatorStateInfo(0).IsTag(AttackTag));
+
         public override void OnNetworkSpawn()
         {
             var chosen = (int)(OwnerClientId % (ulong)_variants.Length);
             for (var i = 0; i < _variants.Length; i++) _variants[i].gameObject.SetActive(i == chosen);
             _animator = _variants[chosen];
+            _directional = false;
+            foreach (var parameter in _animator.parameters) _directional |= parameter.nameHash == MoveXId;
+            TintOutfit();
             _lastPosition = transform.position;
             _lastHealth = _health.Current;
             _health.Changed += OnHealthChanged;
+        }
+
+        // Each player's outfit in its own colour, so co-op players can tell each other apart.
+        private void TintOutfit()
+        {
+            if (_outfit == null || _outfitColors == null || _outfitColors.Length == 0) return;
+            var color = _outfitColors[(int)(OwnerClientId % (ulong)_outfitColors.Length)];
+            var block = new MaterialPropertyBlock();
+            foreach (var r in _animator.GetComponentsInChildren<Renderer>(true))
+            {
+                var materials = r.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                {
+                    if (materials[i] != _outfit) continue;
+                    r.GetPropertyBlock(block, i);
+                    block.SetColor(BaseColorId, color);
+                    r.SetPropertyBlock(block, i);
+                }
+            }
         }
 
         public override void OnNetworkDespawn() => _health.Changed -= OnHealthChanged;
@@ -61,9 +98,15 @@ namespace Isekai.Net
             var delta = transform.position - _lastPosition;
             _lastPosition = transform.position;
             delta.y = 0f;
-            var speed = Time.deltaTime > 0f ? delta.magnitude / Time.deltaTime : 0f;
-            if (speed > TeleportSpeed) speed = 0f;
-            _animator.SetFloat(SpeedId, speed, _speedDampSeconds, Time.deltaTime);
+            var velocity = Time.deltaTime > 0f ? delta / Time.deltaTime : Vector3.zero;
+            if (velocity.magnitude > TeleportSpeed) velocity = Vector3.zero;
+            _animator.SetFloat(SpeedId, velocity.magnitude, _speedDampSeconds, Time.deltaTime);
+            if (_directional)
+            {
+                var local = transform.InverseTransformDirection(velocity);
+                _animator.SetFloat(MoveXId, local.x, _speedDampSeconds, Time.deltaTime);
+                _animator.SetFloat(MoveZId, local.z, _speedDampSeconds, Time.deltaTime);
+            }
             _animator.SetBool(DeadId, dead);
         }
 
@@ -92,8 +135,35 @@ namespace Isekai.Net
         [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
         private void HeavyAttackRpc()
         {
-            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(HeavyId);
+            if (_animator != null && _animator.isActiveAndEnabled)
+            {
+                _animator.SetBool(ChargingId, false); // the release; also covers a charge-stop that hasn't arrived yet
+                _animator.SetTrigger(HeavyId);
+            }
             Sfx.PlayRandom(_audio, _attackClips, _attackVolume);
+        }
+
+        // Owner: show its own charge stance at once; the server shows it to everyone else.
+        public void SetChargingLocal(bool charging) => SetCharging(charging);
+
+        public void ServerSetCharging(bool charging)
+        {
+            if (IsServer) ChargingRpc(charging);
+        }
+
+        [Rpc(SendTo.NotOwner, InvokePermission = RpcInvokePermission.Server)]
+        private void ChargingRpc(bool charging) => SetCharging(charging);
+
+        private void SetCharging(bool charging)
+        {
+            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetBool(ChargingId, charging);
+        }
+
+        // Owner: a spark burst when the charge is ready, a bigger one at full power.
+        public void PlayChargeCue(bool full)
+        {
+            if (_chargeSparks == null) return;
+            _chargeSparks.Emit(new ParticleSystem.EmitParams { startColor = Palette.Accent }, full ? _fullSparks : _readySparks);
         }
 
         // Owner: freeze the character's animation for a moment when its hit lands.
@@ -122,7 +192,11 @@ namespace Isekai.Net
 
         private void PlayRoll()
         {
-            if (_animator != null && _animator.isActiveAndEnabled) _animator.SetTrigger(RollId);
+            if (_animator != null && _animator.isActiveAndEnabled)
+            {
+                _animator.SetBool(ChargingId, false); // a roll cancels a charge
+                _animator.SetTrigger(RollId);
+            }
             Sfx.PlayRandom(_audio, _rollClips, _attackVolume);
         }
 

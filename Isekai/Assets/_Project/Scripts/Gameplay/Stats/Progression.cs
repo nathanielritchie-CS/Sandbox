@@ -19,5 +19,8 @@ namespace Isekai.Gameplay.Stats
         }
 
         public static int StatAtLevel(int baseValue, int perLevel, int level) => baseValue + perLevel * (level - 1);
+
+        // Stat points to spend: pointsPerLevel for every level gained (none at level 1).
+        public static int PointsEarned(int level, int pointsPerLevel) => Mathf.Max(0, level - 1) * Mathf.Max(0, pointsPerLevel);
     }
 }

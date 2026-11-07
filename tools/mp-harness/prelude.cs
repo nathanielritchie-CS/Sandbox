@@ -30,7 +30,8 @@ void StandAt(float x, float z, float fx, float fz) { var p = LocalPlayer().trans
 // Attack until the dummy is dead (or maxShots); returns shots fired.
 async Task<int> KillDummy(int maxShots = 25) {
     var atk = LocalAttack(); var dummy = Scene("Isekai.Net.NetworkHealth")[0]; var shots = 0;
-    while ((int)Prop(dummy, "Current") > 0 && shots < maxShots) { Call(atk, "AttackRpc"); shots++; await Task.Delay(650); }
+    var noTarget = Activator.CreateInstance(T("Unity.Netcode.NetworkObjectReference"));
+    while ((int)Prop(dummy, "Current") > 0 && shots < maxShots) { Call(atk, "AttackRpc", noTarget); shots++; await Task.Delay(650); }
     await Task.Delay(500);
     return shots;
 }
@@ -86,7 +87,8 @@ string Anim(Component character) {
     if (a == null) return "no animator yet";
     if (!a.isActiveAndEnabled) return a.name + ":hidden";
     var i = a.GetCurrentAnimatorStateInfo(0);
-    var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : i.IsName("Attack") ? "Attack" : i.IsName("Roll") ? "Roll" : a.GetNextAnimatorStateInfo(0).IsName("Roll") ? "->Roll" : i.IsName("Hit") ? "Hit" : i.IsName("Death") ? "Death" : "?";
+    var named = new[] { "Attack", "Attack2", "Attack3", "Heavy", "Charge", "Roll", "Hit", "Death" }.FirstOrDefault(n => i.IsName(n));
+    var s = i.IsName("Locomotion") ? "Loco(" + string.Join("+", a.GetCurrentAnimatorClipInfo(0).Where(c => c.weight > 0.3f).Select(c => c.clip.name.Split((char)124).Last())) + ")" : named ?? (a.GetNextAnimatorStateInfo(0).IsName("Roll") ? "->Roll" : "?");
     return a.name + ":" + s;
 }
 Component Player(ulong owner) { foreach (var o in Scene("Isekai.Net.PlayerMovement")) if ((ulong)Prop(o, "OwnerClientId") == owner) return (Component)o; return null; }

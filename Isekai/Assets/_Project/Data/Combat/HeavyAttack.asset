@@ -16,5 +16,8 @@ MonoBehaviour:
   _range: 2.4
   _arcDegrees: 120
   _cooldown: 1
-  _impactDelay: 0.6
+  _impactDelay: 0.36
   _staminaCost: 25
+  _maxDamage: 25
+  _chargeReadySeconds: 0.35
+  _chargeFullSeconds: 0.75
